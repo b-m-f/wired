@@ -23,7 +23,7 @@ Options:
   -V, --version                    Print version
 
 ```
-All configs will be inside an output directory called `CONFIG_FILE`.
+All configs will be inside an output directory called **the same as the config file, but without** `.toml`.
 In order to keep the Keys and IPs the same over consecutive executions make sure that the `CONFIG_FILE.toml` and output directory stay together.
 
 # Config file
