@@ -23,6 +23,8 @@ Options:
   -V, --version                    Print version
 
 ```
+All configs will be inside an output directory called `CONFIG_FILE`.
+In order to keep the Keys and IPs the same over consecutive executions make sure that the `CONFIG_FILE.toml` and output directory stay together.
 
 # Config file
 
@@ -32,26 +34,20 @@ Options:
 |network|CIDR|Network to assign IP addresses from|required|
 
 
-## [servers]
-|What|Type|Description|Required|
-|---|---|---|---|
-|persistent_keepalive|int|Peers will send a keep-alive packet every **X** seconds|optional|
-
-## [servers.specific]
+## [servers.NAME]
 |What|Type|Description|Required|
 |---|---|---|---|
 |ip|1-255|IPv4 of the server inside the network|required|
-|ipv6|0001-ffff|IPv6 of the server inside the network|optional|
 |port|0-65536|Port on which WireGuard is listening|required|
 |endpoint|IPv4 or IPv6 or Hostname|Address where this server is reachable|required|
 |persistent_keepalive|int|Peers will send a keep-alive packet every **X** seconds|optional|
 |dns|IPv4 or IPv6|set custom DNS server|optional|
 
-## [clients.specific]
+## [clients.NAME]
 
 |What|Type|Description|Required|
 |---|---|---|---|
-|dns|IPv4 or IPv6|set custom DNS server|optional|
+|dns|IP|set custom DNS server|optional|
 
 ## Why TOML?
 
@@ -62,25 +58,7 @@ Done fully automatically for all clients.
 Must be set for servers, which can in turn be used to create DNS records.
 
 # Key management
-All keys are autmatically created and rotated on each execution.
-
-# Merge Order
-
-More specific settings merge on top of less specific ones.
-
-## Example
-```
-[servers]
-persistent_keepalive = 25
-
-[servers.alpha]
-
-[servers.beta]
-persistent_keepalive = 30
-```
-
-Client will send `keepalive` packet to `alpha` every 25 seconds, and every 30 seconds to `beta`.
-
+All keys are autmatically created and kept over consecutive exections if the output directory is in the same directory as the binary.
 
 ## Rotating keys
 
@@ -88,7 +66,8 @@ Invoke with `--rotate-keys` or `-r`.
 
 ## Why BSD?
 
-Because I am a Software Developer from Berlin.
+Berlin Software Developer. Fits.
+Also do what you want with this.
 
 ## Testing
 Tests are written using [bats](https://github.com/bats-core/bats-core).
