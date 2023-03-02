@@ -27,6 +27,23 @@ All configs will be inside an output directory called `CONFIG_FILE`.
 In order to keep the Keys and IPs the same over consecutive executions make sure that the `CONFIG_FILE.toml` and output directory stay together.
 
 # Config file
+```
+[global]
+cidr = "10.0.0.0/24"
+
+[servers]
+[servers.gateway]
+endpoint = "mydomain.tld"
+ip = "10.0.0.1"
+port = 22222
+persistent_keepalive = 25
+
+[clients]
+[clients.laptop]
+dns = "10.0.0.1"
+[clients.phone]
+dns = "10.0.0.1"
+```
 
 ## [global]
 |What|Type|Description|Required|
