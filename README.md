@@ -64,6 +64,10 @@ All keys are autmatically created and kept over consecutive exections if the out
 
 Invoke with `--rotate-keys` or `-r`.
 
+## Rotating ips 
+
+Invoke with `--rotate-ips` or `-i`.
+
 # Development
 
 ## New network topologies
