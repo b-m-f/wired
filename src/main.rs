@@ -1,9 +1,6 @@
 mod wired;
 
-use std::fs::create_dir_all;
-
 use clap::Parser;
-
 
 #[derive(Parser, Debug)]
 #[command(name = "wired")]

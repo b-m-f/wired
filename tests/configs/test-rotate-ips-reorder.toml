@@ -10,10 +10,8 @@ port = 10101
 [clients]
 [clients.server]
 [clients.desktop]
-dns = "10.0.0.1"
 [clients.server2]
 [clients.laptop]
 dns = "10.0.0.1"
 [clients.phone]
 qr = true
-dns = "10.0.0.1"

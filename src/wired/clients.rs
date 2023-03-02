@@ -54,7 +54,7 @@ impl ClientConfig {
                 Some(ka) => {
                     peers = format!(
                         "{}\n\
-             PersistentKeepalive= {}",
+             PersistentKeepalive = {}",
                         peers, ka,
                     )
                 }

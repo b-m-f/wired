@@ -19,6 +19,29 @@ client_configs=( "desktop.conf" "laptop.conf" "phone.conf" "server2.conf" "serve
       # Expect the configs not to change between runs
       [ "$result_first_run" = "$result_second_run" ]
   done
+  run cat configs/test-basic/gateway.conf
+
+  assert_line --regexp 'Address = 10.0.0.1'
+  assert_line --regexp 'PrivateKey =.*'
+  assert_line --regexp 'DNS = 1.1.1.1'
+  assert_line --regexp 'ListenPort = 10101'
+  
+  run cat configs/test-basic/laptop.conf
+
+  assert_line --regexp 'DNS = 10.0.0.1'
+
+  for file in "${client_configs[@]}"
+  do
+      run cat configs/test-basic/$file
+
+      assert_line --regexp 'Address = .*'
+      assert_line --regexp 'PrivateKey =.*'
+      assert_line --regexp 'PersistentKeepalive = 25'
+      assert_line --regexp 'PublicKey = .*'
+      assert_line --regexp 'AllowedIPs = 10.0.0.1'
+      assert_line --regexp 'Endpoint = test.test:10101'
+
+  done
 }
 
 @test "IPs are changed correctly" {
