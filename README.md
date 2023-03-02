@@ -2,7 +2,7 @@
 
 This software will read a `.toml` file and generate WireGuard configurations for a Server-Client network:
 - Clients can talk to all servers
-- Server can talk to all clients
+- Servers can talk to all clients
 - Clients can not talk to each other
 - Servers can not talk to each other
 
@@ -10,9 +10,19 @@ The software is aware of previously generated configurations and will reuse old 
 
 ## How to use
 
-`wired NAME.toml`
+```
+WireGuard network config generator
 
-All configs will be inside `NAME` directory
+Usage: wired [OPTIONS] --config-file <CONFIG_FILE>
+
+Options:
+  -c, --config-file <CONFIG_FILE>  Config file to parse
+  -r, --rotate-keys                Rotate all private keys
+  -i, --rotate-ips                 Assign new IPs to clients
+  -h, --help                       Print help
+  -V, --version                    Print version
+
+```
 
 # Config file
 
