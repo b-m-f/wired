@@ -1,12 +1,12 @@
 # Wired
 
-This software will read a `.toml` file and generate WireGuard configurations for a Server-Client network:
+This software will read a `.toml` file and can currently generate WireGuard configurations for a Server-Client network:
 - Clients can talk to all servers
 - Servers can talk to all clients
 - Clients can not talk to each other
 - Servers can not talk to each other
 
-The software is aware of previously generated configurations and will reuse old keys by default.
+The software is aware of previously generated configurations and will reuse old keys and IP's by default.
 
 ## How to use
 
@@ -64,10 +64,16 @@ All keys are autmatically created and kept over consecutive exections if the out
 
 Invoke with `--rotate-keys` or `-r`.
 
-## Why BSD?
+# Development
 
-Berlin Software Developer. Fits.
-Also do what you want with this.
+## New network topologies
+
+It is possible to support all kinds of network topologies using the base `.toml` file.
+If you want to implement one just open an issue and I can help you with any questions.
+
+### Just want me to add it?
+Sure thing, open an issue with the desired topology and I will add it for 0.5 in [ETH](https://ethereum.org/en/).
+If that is too expensive feel free to ask for help via [Gitcoin](https://bounties.gitcoin.co/explorer).
 
 ## Testing
 Tests are written using [bats](https://github.com/bats-core/bats-core).
