@@ -35,13 +35,13 @@ pub fn write_config(path: &String, content: &String) {
 
 pub fn remove_previous_config_dir(config_dir: &String) {
     if Path::new(config_dir).exists() {
-    // delete old configs before regenerating as they have been parsed at this point
-    match std::fs::remove_dir_all(&config_dir) {
-        Ok(_) => (),
-        Err(e) => {
-            panic!("Could not remove previous config output directory. Please remove manually and rerun the config generation. Error: {}", e)
-        }
-    };
+        // delete old configs before regenerating as they have been parsed at this point
+        match std::fs::remove_dir_all(&config_dir) {
+            Ok(_) => (),
+            Err(e) => {
+                panic!("Could not remove previous config output directory. Please remove manually and rerun the config generation. Error: {}", e)
+            }
+        };
     }
 }
 
