@@ -19,6 +19,7 @@ pub struct ClientConfig {
     pub qr: bool,
     dns: Option<String>,
     private_key: String,
+    pub name: String,
 }
 
 impl ClientConfig {
@@ -90,6 +91,7 @@ pub fn parse_client_configs(
             Some(ip) => {
                 let client_config: ClientConfig = ClientConfig {
                     ip,
+                    name: key.to_string(),
                     dns: match value.get("dns") {
                         Some(dns) => Some(dns.to_string().replace("\"", "")),
                         None => None,
@@ -136,6 +138,7 @@ pub fn parse_client_configs(
                     Some(ip) => {
                         let client_config: ClientConfig = ClientConfig {
                             ip,
+                            name: key.to_string(),
                             dns: match value.get("dns") {
                                 Some(dns) => Some(dns.to_string().replace("\"", "")),
                                 None => None,

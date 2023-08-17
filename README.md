@@ -85,6 +85,10 @@ Invoke with `--rotate-keys` or `-r`.
 
 Invoke with `--rotate-ips` or `-i`.
 
+# Extras
+
+`# friendly_name = $NAME` is added for each client in the server configs to be compatible with the [prometheus-wireguard-exporter](https://github.com/MindFlavor/prometheus_wireguard_exporter).
+
 # Development
 
 ## New network topologies

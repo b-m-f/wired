@@ -25,6 +25,11 @@ client_configs=( "desktop.conf" "laptop.conf" "phone.conf" "server2.conf" "serve
   assert_line --regexp 'PrivateKey =.*'
   assert_line --regexp 'DNS = 1.1.1.1'
   assert_line --regexp 'ListenPort = 10101'
+  assert_line --regexp '# friendly_name = laptop'
+  assert_line --regexp '# friendly_name = desktop'
+  assert_line --regexp '# friendly_name = phone'
+  assert_line --regexp '# friendly_name = server2'
+  assert_line --regexp '# friendly_name = server'
   
   run cat configs/test-basic/laptop.conf
 

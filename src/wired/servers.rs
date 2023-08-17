@@ -43,10 +43,11 @@ impl ServerConfig {
             peers = format!(
                 "{}\n\
 [Peer]\n\
+# friendly_name = {}\n
 AllowedIPs = {}\n\
 PublicKey = {}\n\
 PresharedKey = {}",
-                peers, peer.ip, peer.public_key, pre_shared_key
+                peers, peer.name, peer.ip, peer.public_key, pre_shared_key
             );
             peers = format!("{}\n", peers)
         }
