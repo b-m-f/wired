@@ -5,7 +5,7 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(name = "wired")]
 #[command(author = "b-m-f <programming@ehlers.berlin>")]
-#[command(version = "1.0")]
+#[command(version = "1.1.0")]
 #[command(about = "WireGuard network config generator", long_about = None)]
 struct Args {
     /// Config file to parse

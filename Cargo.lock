@@ -922,7 +922,7 @@ checksum = "b6ade45bc8bf02ae2aa34a9d54ba660a1a58204da34ba793c00d83ca3730b5f1"
 
 [[package]]
 name = "wired"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "base64",
  "clap",
