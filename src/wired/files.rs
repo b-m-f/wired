@@ -5,13 +5,14 @@ use std::io::Write;
 use std::path::Path;
 
 #[derive(Debug, Deserialize)]
-pub struct GlobalConfigFromFile {
+pub struct NetworkConfigFromFile {
     pub cidr: String,
+    pub name: String,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct Config {
-    pub global: GlobalConfigFromFile,
+    pub network: NetworkConfigFromFile,
     pub servers: toml::value::Table,
     pub clients: toml::value::Table,
 }

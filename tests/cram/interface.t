@@ -1,4 +1,9 @@
 Print missing config when invoked without anything
   $ wired
-  Please specify config file to be used. Use -help for command line interface description
-  [1]
+  error: the following required arguments were not provided:
+    --config-file <CONFIG_FILE>
+  
+  Usage: wired --config-file <CONFIG_FILE>
+  
+  For more information, try '--help'.
+  [2]

@@ -2,7 +2,7 @@ use super::clients::ClientConfig;
 use super::crypto::{
     derive_base64_public_key_from_base64_private_key, get_private_key_from_file_or_generate,
 };
-use super::global::GlobalConfig;
+use super::network::NetworkConfig;
 use std::net::IpAddr;
 use std::path::Path;
 
@@ -53,20 +53,21 @@ PresharedKey = {}",
         }
         format!("{}\n{}\n", server_section, peers)
     }
+    // TODO: add nix config generation
 }
 
 pub fn parse_server_configs(
     servers: toml::value::Table,
-    global: &GlobalConfig,
+    network: &NetworkConfig,
 ) -> Vec<ServerConfig> {
     // TODO: test parsing error
     let mut configs: Vec<ServerConfig> = Vec::new();
     let mut ips: Vec<IpAddr> = [].to_vec();
 
     for (key, value) in servers.iter() {
-        let path_string = format!("./{}/{}.conf", global.name, key);
+        let path_string = format!("./{}/{}.conf", network.name, key);
         let path = Path::new(&path_string);
-        let private_key = &get_private_key_from_file_or_generate(&path, global.rotate_keys);
+        let private_key = &get_private_key_from_file_or_generate(&path, network.rotate_keys);
 
         let server_config: ServerConfig = ServerConfig {
             path_to_config: path.display().to_string(),
@@ -88,7 +89,7 @@ pub fn parse_server_configs(
                             ip_from_config, key, e
                         ),
                     };
-                    if global.cidr.contains(&ip) {
+                    if network.cidr.contains(&ip) {
                         ips.push(ip);
                         ip
                     } else {

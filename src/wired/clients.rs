@@ -5,7 +5,7 @@ use std::net::IpAddr;
 use super::crypto::{
     derive_base64_public_key_from_base64_private_key, get_private_key_from_file_or_generate,
 };
-use super::global::GlobalConfig;
+use super::network::NetworkConfig;
 use super::servers::ServerConfig;
 use std::fs::File;
 use std::io::{prelude::*, BufReader};
@@ -23,6 +23,7 @@ pub struct ClientConfig {
 }
 
 impl ClientConfig {
+    // TODO: change name to conf
     pub fn generate_string(&self, servers: &Vec<ServerConfig>, pre_shared_key: &String) -> String {
         let mut client_section = format!(
             "[Interface]\n\
@@ -70,7 +71,7 @@ impl ClientConfig {
 pub fn parse_client_configs(
     clients: toml::value::Table,
     server_configs: &Vec<ServerConfig>,
-    global: &GlobalConfig,
+    network: &NetworkConfig,
 ) -> Vec<ClientConfig> {
     // TODO: test parsing error
     let mut configs: Vec<ClientConfig> = Vec::new();
@@ -82,10 +83,10 @@ pub fn parse_client_configs(
     let mut clients_without_ip = HashMap::new();
 
     for (key, value) in clients.iter() {
-        let path_string = format!("./{}/{}.conf", global.name, key);
+        let path_string = format!("./{}/{}.conf", network.name, key);
         let path = Path::new(&path_string);
-        let private_key = get_private_key_from_file_or_generate(&path, global.rotate_keys);
-        let free_ip = get_ip_from_file(&path, &global.cidr, &mut used_ips, &global.rotate_ips);
+        let private_key = get_private_key_from_file_or_generate(&path, network.rotate_keys);
+        let free_ip = get_ip_from_file(&path, &network.cidr, &mut used_ips, &network.rotate_ips);
 
         match free_ip {
             Some(ip) => {
@@ -127,13 +128,13 @@ pub fn parse_client_configs(
     // config file makes sure, that the used_ips accumulator is filled with existing configs before
     // new IPs are given out
     for (key, value) in clients_without_ip.iter() {
-        let path_string = format!("./{}/{}.conf", global.name, key);
+        let path_string = format!("./{}/{}.conf", network.name, key);
         let path = Path::new(&path_string);
-        let private_key = get_private_key_from_file_or_generate(&path, global.rotate_keys);
-        match get_ip_from_file(&path, &global.cidr, &mut used_ips, &global.rotate_ips) {
+        let private_key = get_private_key_from_file_or_generate(&path, network.rotate_keys);
+        match get_ip_from_file(&path, &network.cidr, &mut used_ips, &network.rotate_ips) {
             Some(_) => continue,
             None => {
-                let free_ip = get_next_available_ip(&global.cidr, &mut used_ips);
+                let free_ip = get_next_available_ip(&network.cidr, &mut used_ips);
                 match free_ip {
                     Some(ip) => {
                         let client_config: ClientConfig = ClientConfig {
@@ -165,7 +166,7 @@ pub fn parse_client_configs(
 
                     None => panic!(
                         "No more IPs available for client in provided CIDR: {}",
-                        &global.cidr
+                        &network.cidr
                     ),
                 }
             }
