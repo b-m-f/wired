@@ -1,4 +1,4 @@
-use super::crypto::get_preshared_key_from_file_or_generate;
+use super::crypto::get_preshared_key;
 use super::files::Config;
 use ipnet::Ipv4Net;
 
@@ -22,7 +22,10 @@ pub fn parse_network_config(config: &Config, rotate_keys: bool, rotate_ips: bool
         // TODO: get name from config file
         name: name.to_string(),
         // TODO: make sure this is caught in parsing
-        preshared_key: get_preshared_key_from_file_or_generate(&name, rotate_keys),
+        preshared_key: match &config.network.presharedkey {
+            Some(psk) => psk.to_string(),
+            None => get_preshared_key(),
+        },
         rotate_keys,
         rotate_ips,
         // TODO: Parse and set web as default

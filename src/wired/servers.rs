@@ -1,10 +1,7 @@
 use super::clients::ClientConfig;
-use super::crypto::{
-    derive_base64_public_key_from_base64_private_key, get_private_key_from_file_or_generate,
-};
+use super::crypto::{derive_base64_public_key_from_base64_private_key, get_private_key};
 use super::network::NetworkConfig;
 use std::net::Ipv4Addr;
-use std::path::Path;
 
 #[derive(Debug)]
 pub struct ServerConfig {
@@ -13,7 +10,6 @@ pub struct ServerConfig {
     pub port: u16,
     pub persistent_keepalive: Option<u16>,
     pub public_key: String,
-    pub path_to_config: String,
     dns: Option<String>,
     private_key: String,
     pub output: String,
@@ -72,14 +68,15 @@ pub fn parse_server_configs(
 
     for (key, value) in servers.iter() {
         //  TODO: remove path to config
-        let path_string = format!("./{}/{}.conf", network.name, key);
-        let path = Path::new(&path_string);
         let name = key;
-        let private_key = &get_private_key_from_file_or_generate(&path, network.rotate_keys);
+        let private_key = match value.get("privatekey") {
+            // TODO: make parse and replace easier, pull into function
+            Some(key) => key.to_string().replace("\"", ""),
+            None => get_private_key(),
+        };
 
         let server_config: ServerConfig = ServerConfig {
             name: name.to_string(),
-            path_to_config: path.display().to_string(),
             endpoint: match value.get("endpoint") {
                 // TODO: validate that its a correct host
                 Some(endpoint) => endpoint.to_string().replace("\"", ""),

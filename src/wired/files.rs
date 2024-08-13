@@ -8,6 +8,7 @@ use std::path::Path;
 pub struct NetworkConfigFromFile {
     pub cidrv4: String,
     pub name: String,
+    pub presharedkey: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]

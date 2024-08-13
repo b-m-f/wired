@@ -3,13 +3,9 @@ use std::collections::HashMap;
 use std::net::Ipv4Addr;
 use std::str::FromStr;
 
-use super::crypto::{
-    derive_base64_public_key_from_base64_private_key, get_private_key_from_file_or_generate,
-};
+use super::crypto::{derive_base64_public_key_from_base64_private_key, get_private_key};
 use super::network::NetworkConfig;
 use super::servers::ServerConfig;
-use std::fs::File;
-use std::io::{prelude::*, BufReader};
 
 #[derive(Debug)]
 pub struct ClientConfig {
@@ -84,7 +80,10 @@ pub fn parse_client_configs(
     let mut clients_without_ip = HashMap::new();
 
     for (key, value) in clients.iter() {
-        let private_key = get_private_key(network.rotate_keys);
+        let private_key = match value.get("privatekey") {
+            Some(key) => key.to_string().replace("\"", ""),
+            None => get_private_key(),
+        };
         let ip: Option<String> = match value.get("ip") {
             Some(ip) => Some(ip.to_string().replace("\"", "")),
             None => {
@@ -107,7 +106,6 @@ pub fn parse_client_configs(
                     },
                     public_key: derive_base64_public_key_from_base64_private_key(&private_key),
                     private_key,
-                    path_to_config: path.display().to_string(),
                     output: match value.get("output") {
                         Some(r#type) => r#type.to_string().replace("\"", ""),
                         None => "conf".to_string(),
@@ -130,9 +128,10 @@ pub fn parse_client_configs(
     // config file makes sure, that the used_ips accumulator is filled with existing configs before
     // new IPs are given out
     for (key, value) in clients_without_ip.iter() {
-        let path_string = format!("./{}/{}.conf", network.name, key);
-        let path = Path::new(&path_string);
-        let private_key = get_private_key_from_file_or_generate(&path, network.rotate_keys);
+        let private_key = match value.get("privatekey") {
+            Some(key) => key.to_string().replace("\"", ""),
+            None => get_private_key(),
+        };
         let free_ip = get_next_available_ip(&network.cidrv4, &mut used_ips);
         match free_ip {
             Some(ip) => {
@@ -145,7 +144,6 @@ pub fn parse_client_configs(
                     },
                     public_key: derive_base64_public_key_from_base64_private_key(&private_key),
                     private_key,
-                    path_to_config: path.display().to_string(),
                     output: match value.get("output") {
                         Some(r#type) => r#type.to_string().replace("\"", ""),
                         None => "conf".to_string(),
