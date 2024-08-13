@@ -25,7 +25,10 @@ Name of the network. This will be used to create a folder where all generated co
 
 The CIDR settings will be used to generate IPs in case they are ommited from
 the peer configurations.
-Only IPv4 is currently supported
+
+In the nix configuration routes will be created to reach the whole CIDR via the WireGuard interface.
+
+> Only IPv4 is currently supported
 
 ### type
 The type determines the connectivity of the network.

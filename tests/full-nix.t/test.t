@@ -4,20 +4,107 @@ Make sure all config files get created
 
 Check that expected files were created
   $ ls full
-  client.conf
+  client.nix
   server.nix
 
 Confirm that configs have the correct output
-  $ cat full/client.conf
-  [Interface]
-  Address = 10.100.1.1
-  PrivateKey = 8Fp1TVFMWY0qYufoGm6qFeJXrtzU3FodpoiCkdJfQ2k=
-  DNS = 10.10.10.1
-  
-  [Peer]
-  PublicKey = vvLcDOPrSPIflR8dJtM5Q3iqQCSCPvoyFaLrUlWoIHM=
-  Endpoint = 1.1.1.1:20202
-  AllowedIPs = 10.100.1.1
-  PresharedKey = qPQ/T+4dHydnvk8cZXh+zBpZqOmLvaoxbC0W6c2gwtg=
-  
+  $ cat full/client.nix
+  {
+            config,
+            pkgs,
+            lib,
+            ...
+          }: {
+            systemd.network = {
+              enable = true;
+              netdevs = {
+                "10-full" = {
+                  netdevConfig = {
+                    Kind = "wireguard";
+                    Name = "full";
+                    MTUBytes = "1500";
+                  };
+                  wireguardConfig = {
+                    #Must be readable by the systemd.network user
+                    PrivateKeyFile = "UPDATE_THIS_VIA_YOUR_SECRET_MANAGER."
+                  };
+                  wireguardPeers = [
+                    {
+                       wireguardPeerConfig = {
+                        PublicKey = "4xwoi5qsTROaHoeRmMFwe9V3+ddVM/QfhBZQ1Tt7slg=";
+                        AllowedIPs = ["10.10.10.1"];
+                        Endpoint = "winstenparty.club:10101"
+                        PersistentKeepalive = 15;
+                        PresharedKeyFile="UPDATE_THIS_VIA_YOUR_SECRET_MANAGER."
+                       };
+                    }
+                  ];
+                };
+              };
+              networks.full= {
+                matchConfig.Name = "full";
+                address = [
+                  "10.100.1.1/32"
+                ];
+                DHCP = "no";
+                dns = "dns = "10.10.10.1"";
+                networkConfig = {
+                  IPv6AcceptRA = false;
+                };
+                routes = [
+                     {
+                       routeConfig = {
+                         Destination = 10.10.10.0/24;
+                       };
+                     }
+                    ];
+              };
+            };
+          } (no-eol)
+
+
   $ cat full/server.nix
+  
+  {
+    config,
+    pkgs,
+    lib,
+    ...
+  }: {
+    networking.firewall.allowedUDPPorts = [10101];
+    networking.useNetworkd = true;
+    systemd.network = {
+      enable = true;
+      netdevs = {
+        "50-server" = {
+          netdevConfig = {
+            Kind = "wireguard";
+            Name = "server";
+            MTUBytes = "1500";
+          };
+          wireguardConfig = {
+            PrivateKeyFile = "UPDATE_THIS_VIA_YOUR_SECRET_MANAGER.";
+            ListenPort = 20202;
+          };
+          wireguardPeers = [
+         }
+  
+          ];
+        };
+      };
+      networks.server= {
+        matchConfig.Name = "server";
+        address = ["10.100.1.1"];
+        routes = [
+             {
+               routeConfig = {
+                 Destination = "10.100.1.0/24";
+               };
+             }
+            ];
+           };
+    };
+  }
+  
+  
+               (no-eol)

@@ -1,6 +1,6 @@
 use super::clients::ClientConfig;
 use super::crypto::{derive_base64_public_key_from_base64_private_key, get_private_key};
-use super::network::NetworkConfig;
+use super::network::{self, NetworkConfig};
 use std::net::Ipv4Addr;
 
 #[derive(Debug)]
@@ -17,8 +17,60 @@ pub struct ServerConfig {
 }
 
 impl ServerConfig {
-    pub fn generate_nix(&self, clients: &Vec<ClientConfig>, pre_shared_key: &String) -> String {
-        return "test".to_string();
+    pub fn generate_nix(&self, clients: &Vec<ClientConfig>, network: &NetworkConfig) -> String {
+        let cidr = network.cidrv4;
+        let name = self.name.clone();
+        let ip = self.ip;
+        let port = self.port;
+
+        // TODO: create peers
+
+        return format!(
+            "
+{{
+  config,
+  pkgs,
+  lib,
+  ...
+}}: {{
+  networking.firewall.allowedUDPPorts = [20202];
+  networking.useNetworkd = true;
+  systemd.network = {{
+    enable = true;
+    netdevs = {{
+      \"50-{name}\" = {{
+        netdevConfig = {{
+          Kind = \"wireguard\";
+          Name = \"{name}\";
+          MTUBytes = \"1500\";
+        }};
+        wireguardConfig = {{
+          PrivateKeyFile = \"UPDATE_THIS_VIA_YOUR_SECRET_MANAGER.\";
+          ListenPort = {port};
+        }};
+        wireguardPeers = [
+       }}
+
+        ];
+      }};
+    }};
+    networks.{name}= {{
+      matchConfig.Name = \"{name}\";
+      address = [\"{ip}\"];
+      routes = [
+           {{
+             routeConfig = {{
+               Destination = \"{cidr}\";
+             }};
+           }}
+          ];
+         }};
+  }};
+}}
+
+
+            "
+        );
     }
 
     pub fn generate_conf(&self, clients: &Vec<ClientConfig>, pre_shared_key: &String) -> String {

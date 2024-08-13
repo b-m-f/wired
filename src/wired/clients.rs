@@ -4,7 +4,7 @@ use std::net::Ipv4Addr;
 use std::str::FromStr;
 
 use super::crypto::{derive_base64_public_key_from_base64_private_key, get_private_key};
-use super::network::NetworkConfig;
+use super::network::{self, NetworkConfig};
 use super::servers::ServerConfig;
 
 #[derive(Debug)]
@@ -18,8 +18,71 @@ pub struct ClientConfig {
 }
 
 impl ClientConfig {
-    pub fn generate_nix(&self, servers: &Vec<ServerConfig>, pre_shared_key: &String) -> String {
-        return "test".to_string();
+    pub fn generate_nix(&self, servers: &Vec<ServerConfig>, network: &NetworkConfig) -> String {
+        // TODO: Create peer config
+        // TODO: make shareable with ServerConfig
+        let name = network.name.clone();
+        let ip = self.ip;
+        let dns = match self.dns.clone() {
+            Some(dns) => format!("dns = \"{}\"", dns),
+            None => "".to_string(),
+        };
+
+        // TODO: add integration of secret manager
+        return format!(
+            "{{
+          config,
+          pkgs,
+          lib,
+          ...
+        }}: {{
+          systemd.network = {{
+            enable = true;
+            netdevs = {{
+              \"10-{name}\" = {{
+                netdevConfig = {{
+                  Kind = \"wireguard\";
+                  Name = \"{name}\";
+                  MTUBytes = \"1500\";
+                }};
+                wireguardConfig = {{
+                  #Must be readable by the systemd.network user
+                  PrivateKeyFile = \"UPDATE_THIS_VIA_YOUR_SECRET_MANAGER.\"
+                }};
+                wireguardPeers = [
+                  {{
+                     wireguardPeerConfig = {{
+                      PublicKey = \"4xwoi5qsTROaHoeRmMFwe9V3+ddVM/QfhBZQ1Tt7slg=\";
+                      AllowedIPs = [\"10.10.10.1\"];
+                      Endpoint = \"winstenparty.club:10101\"
+                      PersistentKeepalive = 15;
+                      PresharedKeyFile=\"UPDATE_THIS_VIA_YOUR_SECRET_MANAGER.\"
+                     }};
+                  }}
+                ];
+              }};
+            }};
+            networks.{name}= {{
+              matchConfig.Name = \"{name}\";
+              address = [
+                \"{ip}/32\"
+              ];
+              DHCP = \"no\";
+              dns = \"{dns}\";
+              networkConfig = {{
+                IPv6AcceptRA = false;
+              }};
+              routes = [
+                   {{
+                     routeConfig = {{
+                       Destination = 10.10.10.0/24;
+                     }};
+                   }}
+                  ];
+            }};
+          }};
+        }}",
+        );
     }
     pub fn generate_conf(&self, servers: &Vec<ServerConfig>, pre_shared_key: &String) -> String {
         let mut client_section = format!(

@@ -54,8 +54,7 @@ fn main() {
             }
             "nix" => {
                 let path_string = format!("./{}/{}.nix", network_config.name, server_config.name);
-                let finished_config =
-                    server_config.generate_nix(&client_configs, &network_config.preshared_key);
+                let finished_config = server_config.generate_nix(&client_configs, &network_config);
                 wired::files::write_config(&path_string, &finished_config)
             }
             _ => panic!("Unknown output format for server {}", server_config.name),
@@ -71,8 +70,7 @@ fn main() {
             }
             "nix" => {
                 let path_string = format!("./{}/{}.nix", network_config.name, client_config.name);
-                let finished_config =
-                    client_config.generate_nix(&server_configs, &network_config.preshared_key);
+                let finished_config = client_config.generate_nix(&server_configs, &network_config);
                 wired::files::write_config(&path_string, &finished_config);
             }
             "qr" => {
