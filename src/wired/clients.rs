@@ -10,22 +10,22 @@ use super::network::NetworkConfig;
 use super::servers::ServerConfig;
 use std::fs::File;
 use std::io::{prelude::*, BufReader};
-use std::path::Path;
 
 #[derive(Debug)]
 pub struct ClientConfig {
     pub public_key: String,
     pub ip: Ipv4Addr,
-    pub path_to_config: String,
-    pub qr: bool,
+    pub output: String,
     dns: Option<String>,
     private_key: String,
     pub name: String,
 }
 
 impl ClientConfig {
-    // TODO: change name to conf
-    pub fn generate_string(&self, servers: &Vec<ServerConfig>, pre_shared_key: &String) -> String {
+    pub fn generate_nix(&self, servers: &Vec<ServerConfig>, pre_shared_key: &String) -> String {
+        return "test".to_string();
+    }
+    pub fn generate_conf(&self, servers: &Vec<ServerConfig>, pre_shared_key: &String) -> String {
         let mut client_section = format!(
             "[Interface]\n\
     Address = {}\n\
@@ -84,9 +84,7 @@ pub fn parse_client_configs(
     let mut clients_without_ip = HashMap::new();
 
     for (key, value) in clients.iter() {
-        let path_string = format!("./{}/{}.conf", network.name, key);
-        let path = Path::new(&path_string);
-        let private_key = get_private_key_from_file_or_generate(&path, network.rotate_keys);
+        let private_key = get_private_key(network.rotate_keys);
         let ip: Option<String> = match value.get("ip") {
             Some(ip) => Some(ip.to_string().replace("\"", "")),
             None => {
@@ -110,15 +108,9 @@ pub fn parse_client_configs(
                     public_key: derive_base64_public_key_from_base64_private_key(&private_key),
                     private_key,
                     path_to_config: path.display().to_string(),
-                    qr: match value.get("qr") {
-                        Some(qr) => {
-                            if qr.to_string() == "false" {
-                                false
-                            } else {
-                                true
-                            }
-                        }
-                        None => false,
+                    output: match value.get("output") {
+                        Some(r#type) => r#type.to_string().replace("\"", ""),
+                        None => "conf".to_string(),
                     },
                 };
 
@@ -154,15 +146,9 @@ pub fn parse_client_configs(
                     public_key: derive_base64_public_key_from_base64_private_key(&private_key),
                     private_key,
                     path_to_config: path.display().to_string(),
-                    qr: match value.get("qr") {
-                        Some(qr) => {
-                            if qr.to_string() == "false" {
-                                false
-                            } else {
-                                true
-                            }
-                        }
-                        None => false,
+                    output: match value.get("output") {
+                        Some(r#type) => r#type.to_string().replace("\"", ""),
+                        None => "conf".to_string(),
                     },
                 };
 

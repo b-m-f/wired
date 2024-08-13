@@ -16,10 +16,16 @@ pub struct ServerConfig {
     pub path_to_config: String,
     dns: Option<String>,
     private_key: String,
+    pub output: String,
+    pub name: String,
 }
 
 impl ServerConfig {
-    pub fn generate_string(&self, clients: &Vec<ClientConfig>, pre_shared_key: &String) -> String {
+    pub fn generate_nix(&self, clients: &Vec<ClientConfig>, pre_shared_key: &String) -> String {
+        return "test".to_string();
+    }
+
+    pub fn generate_conf(&self, clients: &Vec<ClientConfig>, pre_shared_key: &String) -> String {
         let mut server_section = format!(
             "[Interface]\n\
     Address = {}\n\
@@ -65,11 +71,14 @@ pub fn parse_server_configs(
     let mut ips: Vec<Ipv4Addr> = [].to_vec();
 
     for (key, value) in servers.iter() {
+        //  TODO: remove path to config
         let path_string = format!("./{}/{}.conf", network.name, key);
         let path = Path::new(&path_string);
+        let name = key;
         let private_key = &get_private_key_from_file_or_generate(&path, network.rotate_keys);
 
         let server_config: ServerConfig = ServerConfig {
+            name: name.to_string(),
             path_to_config: path.display().to_string(),
             endpoint: match value.get("endpoint") {
                 // TODO: validate that its a correct host
@@ -116,6 +125,10 @@ pub fn parse_server_configs(
             },
             private_key: private_key.to_string(),
             public_key: derive_base64_public_key_from_base64_private_key(&private_key),
+            output: match value.get("output") {
+                Some(r#type) => r#type.to_string().replace("\"", ""),
+                None => "conf".to_string(),
+            },
         };
 
         configs.push(server_config);

@@ -45,17 +45,43 @@ fn main() {
 
     // TODO: make sure to write by chosen type
     for server_config in &server_configs[..] {
-        let finished_config =
-            server_config.generate_string(&client_configs, &network_config.preshared_key);
-        wired::files::write_config(&server_config.path_to_config, &finished_config)
+        match server_config.output.as_str() {
+            "conf" => {
+                let path_string = format!("./{}/{}.conf", network_config.name, server_config.name);
+                let finished_config =
+                    server_config.generate_conf(&client_configs, &network_config.preshared_key);
+                wired::files::write_config(&path_string, &finished_config)
+            }
+            "nix" => {
+                let path_string = format!("./{}/{}.nix", network_config.name, server_config.name);
+                let finished_config =
+                    server_config.generate_nix(&client_configs, &network_config.preshared_key);
+                wired::files::write_config(&path_string, &finished_config)
+            }
+            _ => panic!("Unknown output format for server {}", server_config.name),
+        }
     }
     for client_config in client_configs {
-        let finished_config =
-            client_config.generate_string(&server_configs, &network_config.preshared_key);
-        wired::files::write_config(&client_config.path_to_config, &finished_config);
-
-        if client_config.qr {
-            wired::qr::create_qr(&client_config.path_to_config, &finished_config);
+        match client_config.output.as_str() {
+            "conf" => {
+                let path_string = format!("./{}/{}.conf", network_config.name, client_config.name);
+                let finished_config =
+                    client_config.generate_conf(&server_configs, &network_config.preshared_key);
+                wired::files::write_config(&path_string, &finished_config);
+            }
+            "nix" => {
+                let path_string = format!("./{}/{}.nix", network_config.name, client_config.name);
+                let finished_config =
+                    client_config.generate_nix(&server_configs, &network_config.preshared_key);
+                wired::files::write_config(&path_string, &finished_config);
+            }
+            "qr" => {
+                let path_string = format!("./{}/{}.png", network_config.name, client_config.name);
+                let finished_config =
+                    client_config.generate_conf(&server_configs, &network_config.preshared_key);
+                wired::qr::create_qr(&path_string, &finished_config);
+            }
+            _ => panic!("Unknown output format for server {}", client_config.name),
         }
     }
     // TODO: generate statefile
