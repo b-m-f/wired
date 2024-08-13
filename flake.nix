@@ -22,10 +22,8 @@
       {
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
-            podman
-            buildah
-            bash
             python312Packages.cram
+            just
           ];
 
           shellHook = ''
