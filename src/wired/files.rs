@@ -6,7 +6,7 @@ use std::path::Path;
 
 #[derive(Debug, Deserialize)]
 pub struct NetworkConfigFromFile {
-    pub cidr: String,
+    pub cidrv4: String,
     pub name: String,
 }
 

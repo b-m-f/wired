@@ -3,13 +3,13 @@ use super::crypto::{
     derive_base64_public_key_from_base64_private_key, get_private_key_from_file_or_generate,
 };
 use super::network::NetworkConfig;
-use std::net::IpAddr;
+use std::net::Ipv4Addr;
 use std::path::Path;
 
 #[derive(Debug)]
 pub struct ServerConfig {
     pub endpoint: String,
-    pub ip: IpAddr,
+    pub ip: Ipv4Addr,
     pub port: u16,
     pub persistent_keepalive: Option<u16>,
     pub public_key: String,
@@ -62,7 +62,7 @@ pub fn parse_server_configs(
 ) -> Vec<ServerConfig> {
     // TODO: test parsing error
     let mut configs: Vec<ServerConfig> = Vec::new();
-    let mut ips: Vec<IpAddr> = [].to_vec();
+    let mut ips: Vec<Ipv4Addr> = [].to_vec();
 
     for (key, value) in servers.iter() {
         let path_string = format!("./{}/{}.conf", network.name, key);
@@ -82,14 +82,14 @@ pub fn parse_server_configs(
             },
             ip: match value.get("ip") {
                 Some(ip_from_config) => {
-                    let ip: IpAddr = match ip_from_config.to_string().replace("\"", "").parse() {
+                    let ip: Ipv4Addr = match ip_from_config.to_string().replace("\"", "").parse() {
                         Ok(ip) => ip,
                         Err(e) => panic!(
                             "Error when trying to parse IP {} for server {}: {}",
                             ip_from_config, key, e
                         ),
                     };
-                    if network.cidr.contains(&ip) {
+                    if network.cidrv4.contains(&ip) {
                         ips.push(ip);
                         ip
                     } else {
@@ -105,13 +105,13 @@ pub fn parse_server_configs(
                 },
                 None => None,
             },
-            port: match value.get("port") {
+            port: match value.get("listenport") {
                 Some(port) => match port.to_string().parse() {
                     Ok(port) => port,
                     Err(e) => panic!("Could not read servers port: {}", e),
                 },
                 None => panic!(
-                    "Servers need a port conigured so that WireGuard can listen for connections"
+                    "Servers need a port configured so that WireGuard can listen for connections"
                 ),
             },
             private_key: private_key.to_string(),

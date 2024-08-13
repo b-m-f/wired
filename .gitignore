@@ -2,3 +2,4 @@ target
 wireguard.toml
 wireguard
 .direnv
+full.toml

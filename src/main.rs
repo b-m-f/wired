@@ -9,7 +9,7 @@ use clap::Parser;
 #[command(about = "WireGuard network config generator", long_about = None)]
 struct Args {
     /// Config file to parse
-    #[arg(short, long)]
+    #[arg(short = 'c', long)]
     config_file: String,
 
     /// Rotate all private keys
@@ -19,7 +19,6 @@ struct Args {
     /// Assign new IPs to clients
     #[arg(short = 'i', long, default_value_t = false)]
     rotate_ips: bool,
-
     // TODO: add config overwrite flag
 }
 
@@ -35,7 +34,7 @@ fn main() {
     let config_dir = args.config_file.to_string().replace(".toml", "");
 
     let network_config =
-        wired::network::parse_network_config(&config, &config_dir, args.rotate_keys, args.rotate_ips);
+        wired::network::parse_network_config(&config, args.rotate_keys, args.rotate_ips);
     let server_configs = wired::servers::parse_server_configs(config.servers, &network_config);
     let client_configs =
         wired::clients::parse_client_configs(config.clients, &server_configs, &network_config);
