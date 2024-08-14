@@ -1,0 +1,32 @@
+  $ cd $TESTDIR
+Error when missing servers:
+
+  $ wired --config-file missing-servers.toml
+  thread 'main' panicked at src/main.rs:31:19:
+  missing field `servers` at line 9 column 1
+  note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+  [101]
+
+Error when unknown server config is encountered:
+
+  $ wired --config-file unknown-server.toml
+  thread 'main' panicked at src/wired/servers.rs:153:25:
+  Server configurations need an Endpoint
+  note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+  [101]
+
+Error when missing clients:
+
+  $ wired --config-file missing-clients.toml
+  thread 'main' panicked at src/main.rs:31:19:
+  missing field `clients` at line 8 column 1
+  note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+  [101]
+
+Error when unknown client config is encountered:
+
+  $ wired --config-file unknown-client.toml
+  thread 'main' panicked at src/wired/servers.rs:153:25:
+  Server configurations need an Endpoint
+  note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+  [101]
