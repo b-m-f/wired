@@ -10,12 +10,12 @@ pub fn generate_server(
     let cidr = network.cidrv4;
     let name = server.name.clone();
     let ip = server.ip;
-    let port = server.port;
+    let port = server.listenport;
 
     let mut peers: Vec<String> = Vec::new();
 
     for client in clients {
-        let publickey = client.public_key.clone();
+        let publickey = client.publickey.clone();
         let ip = client.ip;
         let peer = format!(
             "{{
@@ -94,11 +94,11 @@ pub fn generate_client(
     let mut peers: Vec<String> = Vec::new();
 
     for server in servers {
-        let publickey = server.public_key.clone();
+        let publickey = server.publickey.clone();
         let ip = server.ip;
         let endpoint = server.endpoint.clone();
-        let listenport = server.port;
-        let persistentkeepalive: String = match server.persistent_keepalive {
+        let listenport = server.listenport;
+        let persistentkeepalive: String = match server.persistentkeepalive {
             Some(pka) => format!("PersistentKeepalive = {};", pka),
             None => "".to_string(),
         };

@@ -1,7 +1,7 @@
   $ cd $TESTDIR
 Fail when network is missing:
   $ wired --config-file fail-missing.toml
-  thread 'main' panicked at src/wired/parser.rs:32:19:
+  thread 'main' panicked at src/wired/parser.rs:31:19:
   Error when parsing configuration: missing field `network` at line 13 column 1
   note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
   [101]
@@ -9,14 +9,14 @@ Fail when network is missing:
 Fail when network is missing cidrv4:
 
   $ wired --config-file fail-cidrv4.toml
-  thread 'main' panicked at src/wired/parser.rs:32:19:
+  thread 'main' panicked at src/wired/parser.rs:31:19:
   Error when parsing configuration: missing field `cidrv4` for key `network` at line 18 column 1
   note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
   [101]
 
 Fail when network is missing name:
   $ wired --config-file fail-name.toml
-  thread 'main' panicked at src/wired/parser.rs:32:19:
+  thread 'main' panicked at src/wired/parser.rs:31:19:
   Error when parsing configuration: missing field `name` for key `network` at line 18 column 1
   note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
   [101]

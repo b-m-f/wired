@@ -2,7 +2,7 @@ mod wired;
 
 use clap::Parser;
 use wired::{
-    outputs::{conf, nix},
+    outputs::{conf, nix, qr},
     parser::Config,
 };
 
@@ -81,7 +81,7 @@ fn main() {
                 let path_string = format!("./{}/{}.png", network_config.name, client_config.name);
                 let finished_config =
                     conf::generate_client(&client_config, &server_configs, &network_config);
-                wired::qr::create_qr(&path_string, &finished_config);
+                qr::create_qr(&path_string, &finished_config);
             }
             _ => panic!("Unknown output format for server {}", client_config.name),
         }

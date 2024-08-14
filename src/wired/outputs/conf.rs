@@ -12,7 +12,7 @@ pub fn generate_server(
     Address = {}\n\
     ListenPort = {}\n\
     PrivateKey = {}\n",
-        server.ip, server.port, server.private_key
+        server.ip, server.listenport, server.privatekey
     );
     match &server.dns {
         Some(dns) => {
@@ -34,7 +34,7 @@ pub fn generate_server(
 AllowedIPs = {}\n\
 PublicKey = {}\n\
 PresharedKey = {}",
-            peers, peer.name, peer.ip, peer.public_key, network.preshared_key
+            peers, peer.name, peer.ip, peer.publickey, network.preshared_key
         );
         peers = format!("{}\n", peers)
     }
@@ -49,7 +49,7 @@ pub fn generate_client(
         "[Interface]\n\
     Address = {}\n\
     PrivateKey = {}\n",
-        client.ip, client.private_key
+        client.ip, client.privatekey
     );
     match &client.dns {
         Some(dns) => {
@@ -70,9 +70,9 @@ pub fn generate_client(
         Endpoint = {}:{}\n\
         AllowedIPs = {}\n\
         PresharedKey = {}",
-            peers, peer.public_key, peer.endpoint, peer.port, peer.ip, network.preshared_key
+            peers, peer.publickey, peer.endpoint, peer.listenport, peer.ip, network.preshared_key
         );
-        match &peer.persistent_keepalive {
+        match &peer.persistentkeepalive {
             Some(ka) => {
                 peers = format!(
                     "{}\n\

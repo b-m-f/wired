@@ -2,7 +2,6 @@ use core::panic;
 
 use ipnet::Ipv4Net;
 use serde::Deserialize;
-use std::collections::HashMap;
 use std::net::Ipv4Addr;
 use std::str::FromStr;
 
@@ -57,71 +56,123 @@ pub fn parse_servers(config: &Config) -> Vec<ServerConfig> {
     let network = parse_network(&config);
     // TODO: test parsing error
     let mut configs: Vec<ServerConfig> = Vec::new();
-    let mut ips: Vec<Ipv4Addr> = [].to_vec();
 
-    for (key, value) in servers.iter() {
-        //  TODO: remove path to config
-        let name = key;
-        let private_key = match value.get("privatekey") {
-            // TODO: make parse and replace easier, pull into function
-            Some(key) => key.to_string().replace("\"", ""),
-            None => get_private_key(),
-        };
-
-        let server_config: ServerConfig = ServerConfig {
-            name: name.to_string(),
-            endpoint: match value.get("endpoint") {
-                // TODO: validate that its a correct host
-                Some(endpoint) => endpoint.to_string().replace("\"", ""),
-                None => panic!("Server configurations need an Endpoint"),
-            },
-            dns: match value.get("dns") {
-                Some(dns) => Some(dns.to_string().replace("\"", "")),
-                None => None,
-            },
-            ip: match value.get("ip") {
-                Some(ip_from_config) => {
-                    let ip: Ipv4Addr = match ip_from_config.to_string().replace("\"", "").parse() {
-                        Ok(ip) => ip,
-                        Err(e) => panic!(
-                            "Error when trying to parse IP {} for server {}: {}",
-                            ip_from_config, key, e
-                        ),
-                    };
-                    if network.cidrv4.contains(&ip) {
-                        ips.push(ip);
-                        ip
-                    } else {
-                        panic!("Error when trying to parse IP for server {}: IP is not inside provided network range", key )
-                    }
-                }
-                None => panic!("Server configurations need an IP"),
-            },
-            persistent_keepalive: match value.get("persistent_keepalive") {
-                Some(ka) => match ka.to_string().parse() {
-                    Ok(ka) => Some(ka),
-                    Err(e) => panic!("Could not read servers keepalive: {}", e),
-                },
-                None => None,
-            },
-            port: match value.get("listenport") {
-                Some(port) => match port.to_string().parse() {
-                    Ok(port) => port,
-                    Err(e) => panic!("Could not read servers port: {}", e),
-                },
+    for (server_name, server) in servers.iter() {
+        if server.is_table() {
+            let name = server_name;
+            let table = match server.as_table() {
+                Some(table) => table,
                 None => panic!(
-                    "Servers need a port configured so that WireGuard can listen for connections"
+                    "Error when parsing server {}. Client is not a proper TOML table",
+                    server_name
                 ),
-            },
-            private_key: private_key.to_string(),
-            public_key: derive_base64_public_key_from_base64_private_key(&private_key),
-            output: match value.get("output") {
-                Some(r#type) => r#type.to_string().replace("\"", ""),
-                None => "conf".to_string(),
-            },
-        };
+            };
+            for (field_key, field_value) in table.iter() {
+                let mut privatekey = "".to_string();
+                let mut endpoint = "".to_string();
+                let mut dns: Option<String> = None;
+                let mut ip: Ipv4Addr = Ipv4Addr::new(0, 0, 0, 0);
+                let mut pka: Option<u16> = None;
+                let mut listenport: u16 = 51820;
+                let mut output: String = "".to_string();
 
-        configs.push(server_config);
+                match field_key.as_str() {
+                    "privatekey" => {
+                        privatekey = match server.get(field_key) {
+                            Some(key) => key.to_string().replace("\"", ""),
+                            None => get_private_key(),
+                        }
+                    }
+                    "endpoint" => {
+                        endpoint = match server.get(field_key) {
+                            // TODO: validate that its a correct host
+                            Some(endpoint) => endpoint.to_string().replace("\"", ""),
+                            None => panic!("Server {} has no endpoint defined", name),
+                        }
+                    }
+                    "dns" => {
+                        dns = match server.get(field_key) {
+                            Some(dns) => Some(dns.to_string().replace("\"", "")),
+                            None => None,
+                        }
+                    }
+                    "ip" => {
+                        ip = match server.get(field_key) {
+                            // TODO: validate that its a correct host
+                            Some(ip) => {
+                                match Ipv4Addr::from_str(&ip.to_string().replace("\"", "")) {
+                                    Ok(ip) => {
+                                        if network.cidrv4.contains(&ip) {
+                                            ip
+                                        } else {
+                                            let cidr = network.cidrv4;
+                                            panic!("IP {ip} of server {name} is not in network CIDR {cidr}")
+                                        }
+                                    }
+                                    Err(e) => {
+                                        panic!("Error when parsing IP {ip} of server {name}: {e}")
+                                    }
+                                }
+                            }
+                            None => panic!("Server {} has no ip defined", name),
+                        }
+                    }
+                    "persistentkeepalive" => pka = match server.get(field_key) {
+                        Some(pka) => match pka.as_integer() {
+                            Some(pka) => match u16::try_from(pka){
+                                Ok(pka) => Some(pka),
+                                    Err(e) => panic!("Error when parsing persistentkeepalive '{pka}' for server {name}: {e}")
+                            }
+                                ,
+                            None => panic!(
+                                "Incorrect persistentkeepalive {field_value} configured for server {name}"
+                            ),
+                        },
+                        None => None,
+                    },
+                    "listenport" => listenport = match server.get(field_key){
+                        Some(port) => match port.as_integer(){
+                            Some(port) =>
+                                match u16::try_from(port){
+                                    Ok(port) => port,
+                                    Err(e) => panic!("Error when parsing listenport '{port}' for server {name}: {e}")
+                                }
+                            ,None=> panic!("Incorrect listenport '{port}' specified for server {name}")
+
+                        },
+                        None => panic!("Missing listenport for server {name}"),
+
+                    },
+                    "output" => output = match server.get(field_key){
+                        Some(output) => {
+                        let output_checked = match output.to_string().as_str(){
+                            "conf" => output.to_string(),
+                            "nix" =>output.to_string(),
+                            _ => panic!("Unkown output {output} for server {name}")
+                        };
+                        output_checked
+                        },
+                        None => "conf".to_string(),
+                    },
+                    _ => panic!("Unkown entry '{}' for server {name}", field_key),
+                }
+                let publickey = derive_base64_public_key_from_base64_private_key(&privatekey);
+                let server_config = ServerConfig {
+                    dns,
+                    endpoint,
+                    privatekey,
+                    publickey,
+                    listenport,
+                    output,
+                    name: name.to_string(),
+                    ip,
+                    persistentkeepalive: pka,
+                };
+                configs.push(server_config);
+            }
+        } else {
+            panic!("Server {} is not a valid TOML table", server_name)
+        }
     }
     configs
 }
@@ -147,7 +198,7 @@ pub fn parse_clients(config: &Config) -> Vec<ClientConfig> {
             };
             for (field_key, field_value) in table.iter() {
                 let name: String = client_name.to_string();
-                let mut private_key: String = "".to_string();
+                let mut privatekey: String = "".to_string();
                 let mut ip: Ipv4Addr = Ipv4Addr::new(0, 0, 0, 0);
                 let mut dns: Option<String> = None;
                 let mut output: String = "conf".to_string();
@@ -155,7 +206,7 @@ pub fn parse_clients(config: &Config) -> Vec<ClientConfig> {
                 println!("{}={}", field_key, field_value);
                 match field_key.as_str() {
                     "privatekey" => {
-                        private_key = match client.get(field_key) {
+                        privatekey = match client.get(field_key) {
                             Some(key) => key.to_string().replace("\"", ""),
                             None => get_private_key(),
                         }
@@ -164,7 +215,14 @@ pub fn parse_clients(config: &Config) -> Vec<ClientConfig> {
                         ip = match client.get(field_key) {
                             Some(ip) => {
                                 match Ipv4Addr::from_str(&ip.to_string().replace("\"", "")) {
-                                    Ok(ip) => ip,
+                                    Ok(ip) => {
+                                        if network.cidrv4.contains(&ip) {
+                                            ip
+                                        } else {
+                                            let cidr = network.cidrv4;
+                                            panic!("IP {ip} of client {name} is not in network CIDR {cidr}")
+                                        }
+                                    }
                                     Err(e) => {
                                         panic!("Error when parsing IP of client {}: {}", &name, e)
                                     }
@@ -188,15 +246,15 @@ pub fn parse_clients(config: &Config) -> Vec<ClientConfig> {
                             None => output,
                         }
                     }
-                    _ => panic!("Unkown entry: {}", field_key),
+                    _ => panic!("Unkown entry '{}' for client {name}", field_key),
                 }
-                let public_key = derive_base64_public_key_from_base64_private_key(&private_key);
+                let publickey = derive_base64_public_key_from_base64_private_key(&privatekey);
                 let client_config: ClientConfig = ClientConfig {
                     dns,
                     ip,
                     name,
-                    private_key,
-                    public_key,
+                    privatekey,
+                    publickey,
                     output,
                 };
                 if postpone_config_generation_until_all_defined_ips_are_known {
@@ -219,11 +277,11 @@ pub fn parse_clients(config: &Config) -> Vec<ClientConfig> {
                 match free_ip {
                     Some(ip) => {
                         configs.push(ClientConfig {
-                            public_key: client.public_key.clone(),
+                            publickey: client.publickey.clone(),
                             ip,
                             output: client.output.clone(),
                             dns: client.dns.clone(),
-                            private_key: client.private_key.clone(),
+                            privatekey: client.privatekey.clone(),
                             name: client.name.clone(),
                         });
                     }
