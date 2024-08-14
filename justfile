@@ -1,3 +1,3 @@
 test:
-  cargo install --path . 
+  cargo install --profile release --path . 
   cram tests

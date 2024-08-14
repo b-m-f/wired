@@ -1,16 +1,16 @@
   $ cd $TESTDIR
 Fail when network is missing:
   $ wired --config-file fail-missing.toml
-  Error: Missing network specification
+  Error when parsing configuration: missing field `network` at line 10 column 1
   [1]
 
 Fail when network is missing cidrv4:
 
   $ wired --config-file fail-cidrv4.toml
-  Error: Missing network CIDR v4
+  Network is missing required field 'cidrv4'
   [1]
 
 Fail when network is missing name:
   $ wired --config-file fail-name.toml
-  Error: Missing network name
+  Network is missing required field 'name'
   [1]

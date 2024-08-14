@@ -6,3 +6,7 @@ Check that all files were created
   $ ls full
   client.png
   server.conf
+
+Cleanup
+  $ rm -rf full
+  $ rm full.statefile

@@ -30,16 +30,34 @@ fn main() {
     let args = Args::parse();
 
     let config: Config = match wired::files::read_config(&args.config_file) {
-        Ok(content) => wired::parser::parse_config(content),
-        // TODO: catch error here
-        Err(e) => panic!("{}", e),
+        Ok(content) => match wired::parser::parse_config(content) {
+            Ok(config) => config,
+            Err(e) => {
+                eprintln!("{e}");
+                std::process::exit(1);
+            }
+        },
+        Err(e) => {
+            eprintln!("{e}");
+            std::process::exit(1);
+        }
     };
 
     let config_dir = args.config_file.to_string().replace(".toml", "");
 
-    let network_config = wired::parser::parse_network(&config);
-    let server_configs = wired::parser::parse_servers(&config);
-    let client_configs = wired::parser::parse_clients(&config);
+    let network_config = wired::parser::parse_network(&config).unwrap_or_else(|e| {
+        eprintln!("{e}");
+        std::process::exit(1);
+    });
+
+    let server_configs = wired::parser::parse_servers(&config).unwrap_or_else(|e| {
+        eprintln!("{e}");
+        std::process::exit(1);
+    });
+    let client_configs = wired::parser::parse_clients(&config).unwrap_or_else(|e| {
+        eprintln!("{e}");
+        std::process::exit(1);
+    });
 
     // TODO: do not overwrite by default
     wired::files::remove_previous_config_dir(&config_dir);
@@ -52,27 +70,58 @@ fn main() {
                 let path_string = format!("./{}/{}.conf", network_config.name, server_config.name);
                 let finished_config =
                     conf::generate_server(&server_config, &client_configs, &network_config);
-                wired::files::write_config(&path_string, &finished_config)
+                match wired::files::write_config(&path_string, &finished_config) {
+                    Ok(_) => (),
+                    Err(e) => {
+                        eprintln!("{e}");
+                        std::process::exit(1);
+                    }
+                };
             }
             "nix" => {
                 let config_path_string =
                     format!("./{}/{}.nix", network_config.name, server_config.name);
                 let finished_config =
                     nix::generate_server(&server_config, &client_configs, &network_config);
-                wired::files::write_config(&config_path_string, &finished_config);
+                match wired::files::write_config(&config_path_string, &finished_config) {
+                    Ok(_) => (),
+                    Err(e) => {
+                        eprintln!("{e}");
+                        std::process::exit(1);
+                    }
+                };
 
                 let privatekey_path_string =
                     format!("./{}/{}.key", network_config.name, server_config.name);
-                wired::files::write_config(&privatekey_path_string, &server_config.privatekey);
+                match wired::files::write_config(&privatekey_path_string, &server_config.privatekey)
+                {
+                    Ok(_) => (),
+                    Err(e) => {
+                        eprintln!("{e}");
+                        std::process::exit(1);
+                    }
+                };
 
                 let presharedkey_path_string =
                     format!("./{}/{}.psk", network_config.name, network_config.name);
-                wired::files::write_config(&presharedkey_path_string, &network_config.presharedkey)
+                match wired::files::write_config(
+                    &presharedkey_path_string,
+                    &network_config.presharedkey,
+                ) {
+                    Ok(_) => (),
+                    Err(e) => {
+                        eprintln!("{e}");
+                        std::process::exit(1);
+                    }
+                }
             }
-            _ => panic!(
-                "Unknown output format {} for server {}",
-                server_config.output, server_config.name
-            ),
+            _ => {
+                eprintln!(
+                    "Unknown output format {} for server {}",
+                    server_config.output, server_config.name
+                );
+                std::process::exit(1);
+            }
         }
     }
     for client_config in &client_configs {
@@ -81,22 +130,50 @@ fn main() {
                 let path_string = format!("./{}/{}.conf", network_config.name, client_config.name);
                 let finished_config =
                     conf::generate_client(&client_config, &server_configs, &network_config);
-                wired::files::write_config(&path_string, &finished_config);
+                match wired::files::write_config(&path_string, &finished_config) {
+                    Ok(_) => (),
+                    Err(e) => {
+                        eprintln!("{e}");
+                        std::process::exit(1);
+                    }
+                }
             }
             "nix" => {
                 let config_path_string =
                     format!("./{}/{}.nix", network_config.name, client_config.name);
                 let finished_config =
                     nix::generate_client(&client_config, &server_configs, &network_config);
-                wired::files::write_config(&config_path_string, &finished_config);
+                match wired::files::write_config(&config_path_string, &finished_config) {
+                    Ok(_) => (),
+                    Err(e) => {
+                        eprintln!("{e}");
+                        std::process::exit(1);
+                    }
+                }
 
                 let privatekey_path_string =
                     format!("./{}/{}.key", network_config.name, client_config.name);
-                wired::files::write_config(&privatekey_path_string, &client_config.privatekey);
+                match wired::files::write_config(&privatekey_path_string, &client_config.privatekey)
+                {
+                    Ok(_) => (),
+                    Err(e) => {
+                        eprintln!("{e}");
+                        std::process::exit(1);
+                    }
+                }
 
                 let presharedkey_path_string =
                     format!("./{}/{}.psk", network_config.name, network_config.name);
-                wired::files::write_config(&presharedkey_path_string, &network_config.presharedkey)
+                match wired::files::write_config(
+                    &presharedkey_path_string,
+                    &network_config.presharedkey,
+                ) {
+                    Ok(_) => (),
+                    Err(e) => {
+                        eprintln!("{e}");
+                        std::process::exit(1);
+                    }
+                }
             }
             "qr" => {
                 let path_string = format!("./{}/{}.png", network_config.name, client_config.name);
@@ -104,13 +181,22 @@ fn main() {
                     conf::generate_client(&client_config, &server_configs, &network_config);
                 qr::create_qr(&path_string, &finished_config);
             }
-            _ => panic!("Unknown output format for server {}", client_config.name),
+            _ => {
+                eprintln!("Unknown output format for server {}", client_config.name);
+                std::process::exit(1);
+            }
         }
     }
     // TODO: generate statefile
     let statefile_content =
         wired::state::create_statefile(&network_config, &server_configs, &client_configs);
     let path_string = format!("./{}.statefile", network_config.name);
-    wired::files::write_config(&path_string, &statefile_content)
+    match wired::files::write_config(&path_string, &statefile_content) {
+        Ok(_) => (),
+        Err(e) => {
+            eprintln!("{e}");
+            std::process::exit(1);
+        }
+    }
     // TODO: add encryption via pass
 }

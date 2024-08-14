@@ -1,5 +1,5 @@
 [network]
-name = "full"
+name = "test-fail-ip-server"
 cidrv4 = "10.100.1.0/24"
 type = "web"
 presharedkey = "qPQ/T+4dHydnvk8cZXh+zBpZqOmLvaoxbC0W6c2gwtg="
@@ -8,18 +8,11 @@ presharedkey = "qPQ/T+4dHydnvk8cZXh+zBpZqOmLvaoxbC0W6c2gwtg="
 [servers.server]
 endpoint = "1.1.1.1"
 listenport =  20202
-allowedips = ["0","1"]
 persistentkeepalive = 5
-fwmark = "6"
 privatekey = "MHYE0gQavBWsRvMNMOoYB/cL3YFoiiWpWAq5PjHMw0c="
-publickey = ""
 
 [clients]
 [clients.client]
 ip = "10.100.1.1"
-allowedips = ""
-fwmark = ""
 privatekey = "8Fp1TVFMWY0qYufoGm6qFeJXrtzU3FodpoiCkdJfQ2k="
-publickey = ""
-presharedkey = ""
 output = "qr"

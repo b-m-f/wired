@@ -1,10 +1,10 @@
   $ cd $TESTDIR
 Fail when server is missing ip:
   $ wired --config-file fail-server.toml
-  Error: No IP specified for server server
+  Server server is missing required field 'ip'
   [1]
 
 Fail when client is missing ip:
   $ wired --config-file fail-client.toml
-  Error: No IP specified for client client
+  Client client is missing required field 'ip'
   [1]

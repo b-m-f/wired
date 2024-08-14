@@ -1,21 +1,20 @@
 [network]
-name = "full"
-cidrv4 = "10.100.1.0/24"
-type = "web"
 presharedkey = "qPQ/T+4dHydnvk8cZXh+zBpZqOmLvaoxbC0W6c2gwtg="
+name = ""
+type = "web"
+cidrv4 = "10.100.1.0/24"
 
 [servers]
-what = "is this?"
-[servers.server]
-endpoint = "1.1.1.1"
+[Servers.server]
 ip = "10.100.1.1"
-listenport =  20202
-persistentkeepalive = 5
+output = "conf"
 privatekey = "MHYE0gQavBWsRvMNMOoYB/cL3YFoiiWpWAq5PjHMw0c="
-output = "nix"
+listenport = 20202
+endpoint = "1.1.1.1"
+persistentkeepalive = 5
 
 [clients]
-[clients.client]
+[Clients.client]
 ip = "10.100.1.1"
+output = "qr"
 privatekey = "8Fp1TVFMWY0qYufoGm6qFeJXrtzU3FodpoiCkdJfQ2k="
-output = "nix"

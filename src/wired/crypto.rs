@@ -13,10 +13,10 @@ fn generate_base64_keypair() -> KeyPairBase64 {
     }
 }
 
-pub fn derive_base64_public_key_from_base64_private_key(key: &String) -> String {
+pub fn derive_base64_public_key_from_base64_private_key(key: &String) -> Result<String, String> {
     let bytes_for_key = match base64::decode(key) {
         Ok(bytes) => bytes,
-        Err(e) => panic!("{}", e),
+        Err(e) => return Err(format!("{}", e)),
     };
     let mut raw_private_key_buffer = [0; 32];
     raw_private_key_buffer.copy_from_slice(&bytes_for_key[..32]);
@@ -24,7 +24,7 @@ pub fn derive_base64_public_key_from_base64_private_key(key: &String) -> String 
     let priv_key: StaticSecret = StaticSecret::from(raw_private_key_buffer);
     let public_key = PublicKey::from(&priv_key);
 
-    base64::encode(public_key.to_bytes())
+    Ok(base64::encode(public_key.to_bytes()))
 }
 
 pub fn get_private_key() -> String {

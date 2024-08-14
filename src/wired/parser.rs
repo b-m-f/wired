@@ -1,5 +1,3 @@
-use core::panic;
-
 use ipnet::Ipv4Net;
 use serde::Deserialize;
 use std::net::Ipv4Addr;
@@ -18,23 +16,28 @@ pub struct Config {
     pub servers: toml::value::Table,
     pub clients: toml::value::Table,
 }
-pub fn parse_config(config: String) -> Config {
+pub fn parse_config(config: String) -> Result<Config, String> {
     match toml::from_str(&config) {
-        Ok(config) => config,
-        Err(e) => panic!("Error when parsing configuration: {}", e),
+        Ok(config) => Ok(config),
+        Err(e) => Err(format!("Error when parsing configuration: {}", e)),
     }
 }
 
-pub fn parse_network(config: &Config) -> NetworkConfig {
+pub fn parse_network(config: &Config) -> Result<NetworkConfig, String> {
     let network = config.network.clone();
 
     let mut cidrv4: Ipv4Net = Ipv4Net::new(Ipv4Addr::new(0, 0, 0, 0), 0).unwrap();
     let mut name = "".to_string();
-    let mut psk = "".to_string();
-    let mut network_type = "".to_string();
+    let mut psk = get_preshared_key();
+    let mut network_type = "web".to_string();
 
-    if network.len() == 0 {
-        panic!("No network configured")
+    // Check that all required fields are set
+    let required = ["name", "cidrv4"];
+    for key in required {
+        match network.get(key) {
+            Some(_) => (),
+            None => return Err(format!("Network is missing required field '{key}'")),
+        }
     }
 
     for (key, value) in network.iter() {
@@ -43,15 +46,17 @@ pub fn parse_network(config: &Config) -> NetworkConfig {
                 cidrv4 = match value.as_str() {
                     Some(cidr) => match Ipv4Net::from_str(&cidr.to_string()) {
                         Ok(cidr) => cidr,
-                        Err(e) => panic!("Error when parsing cidrv4 for network: {e}"),
+                        Err(e) => {
+                            return Err(format!("Error when parsing cidrv4 for network: {e}"))
+                        }
                     },
-                    None => panic!("Network is missing cidrv4 configuration"),
+                    None => return Err(format!("Network is missing cidrv4 configuration")),
                 }
             }
             "name" => {
                 name = match value.as_str() {
                     Some(name) => name.to_string(),
-                    None => panic!("No name specified for network"),
+                    None => return Err(format!("No name specified for network")),
                 }
             }
             "presharedkey" => {
@@ -67,11 +72,11 @@ pub fn parse_network(config: &Config) -> NetworkConfig {
                     None => "web".to_string(),
                 }
             }
-            _ => panic!("Unkown field {key} specified for network"),
+            _ => return Err(format!("Unkown field {key} specified for network")),
         }
     }
     // TODO: test parsing errors
-    return NetworkConfig {
+    return Ok(NetworkConfig {
         cidrv4,
         // TODO: get name from config file
         name,
@@ -79,16 +84,16 @@ pub fn parse_network(config: &Config) -> NetworkConfig {
         presharedkey: psk, // TODO: Parse and set web as default
         // TODO: Make own doc file for network types
         r#type: network_type,
-    };
+    });
 }
 
-pub fn parse_servers(config: &Config) -> Vec<ServerConfig> {
+pub fn parse_servers(config: &Config) -> Result<Vec<ServerConfig>, String> {
     let servers = &config.servers;
-    let network = parse_network(&config);
+    let network = parse_network(&config)?;
     // TODO: test parsing error
     let mut configs: Vec<ServerConfig> = Vec::new();
     if servers.len() == 0 {
-        panic!("No servers configured")
+        return Err("No servers configured".to_string());
     }
 
     for (server_name, server) in servers.iter() {
@@ -96,18 +101,30 @@ pub fn parse_servers(config: &Config) -> Vec<ServerConfig> {
             let name = server_name;
             let table = match server.as_table() {
                 Some(table) => table,
-                None => panic!(
-                    "Error when parsing server {}. Client is not a proper TOML table",
-                    server_name
-                ),
+                None => {
+                    return Err(format!(
+                        "Error when parsing server {}. Client is not a proper TOML table",
+                        server_name
+                    ))
+                }
             };
-            let mut privatekey = "".to_string();
+            // Set mock content to overwrite and defaults
+            let mut privatekey = get_private_key();
             let mut endpoint = "".to_string();
             let mut dns: Option<String> = None;
             let mut ip: Ipv4Addr = Ipv4Addr::new(0, 0, 0, 0);
             let mut pka: Option<u16> = None;
             let mut listenport: u16 = 51820;
-            let mut output: String = "".to_string();
+            let mut output: String = "conf".to_string();
+            // Check that all required fields are set
+            let required = ["ip", "listenport", "endpoint"];
+            for key in required {
+                match server.get(key) {
+                    Some(_) => (),
+                    None => return Err(format!("Server {name} is missing required field '{key}'")),
+                }
+            }
+            // parse config
             for (field_key, field_value) in table.iter() {
                 match field_key.as_str() {
                     "privatekey" => {
@@ -124,8 +141,14 @@ pub fn parse_servers(config: &Config) -> Vec<ServerConfig> {
                     "endpoint" => {
                         endpoint = match server.get(field_key) {
                             // TODO: validate that its a correct host
-                            Some(endpoint) => endpoint.to_string().replace("\"", ""),
-                            None => panic!("Server {} has no endpoint defined", name),
+                            Some(endpoint) => {
+                                if endpoint.is_str(){
+                                endpoint.to_string().replace("\"", "")}
+
+                            else{return Err(format!("Server {} has wrong endpoint defined: '{endpoint}'",name))}
+
+                            },
+                            None => return Err(format!("Server {} has no endpoint defined", name)),
                         }
                     }
                     "dns" => {
@@ -144,27 +167,28 @@ pub fn parse_servers(config: &Config) -> Vec<ServerConfig> {
                                             ip
                                         } else {
                                             let cidr = network.cidrv4;
-                                            panic!("IP {ip} of server {name} is not in network CIDR {cidr}")
+                                            return Err(format!("IP {ip} of server {name} is not in network CIDR {cidr}"))
                                         }
                                     }
                                     Err(e) => {
-                                        panic!("Error when parsing IP {ip} of server {name}: {e}")
+                                        return Err(format!("Error when parsing IP {ip} of server {name}: {e}"))
                                     }
                                 }
                             }
-                            None => panic!("Server {} has no ip defined", name),
+                            None => return Err(format!("Server {} has no ip defined", name)),
                         }
                     }
                     "persistentkeepalive" => pka = match server.get(field_key) {
                         Some(pka) => match pka.as_integer() {
                             Some(pka) => match u16::try_from(pka){
                                 Ok(pka) => Some(pka),
-                                    Err(e) => panic!("Error when parsing persistentkeepalive '{pka}' for server {name}: {e}")
+                                    Err(e) => return Err( format!("Error when parsing persistentkeepalive '{pka}' for server {name}: {e}"))
                             }
                                 ,
-                            None => panic!(
+                            None => return Err(format!(
+
                                 "Incorrect persistentkeepalive {field_value} configured for server {name}"
-                            ),
+                            )),
                         },
                         None => None,
                     },
@@ -173,12 +197,12 @@ pub fn parse_servers(config: &Config) -> Vec<ServerConfig> {
                             Some(port) =>
                                 match u16::try_from(port){
                                     Ok(port) => port,
-                                    Err(e) => panic!("Error when parsing listenport '{port}' for server {name}: {e}")
+                                    Err(e) => return Err(format!("Error when parsing listenport '{port}' for server {name}: {e}"))
                                 }
-                            ,None=> panic!("Incorrect listenport '{port}' specified for server {name}")
+                            ,None=> return Err(format!("Incorrect listenport '{port}' specified for server {name}"))
 
                         },
-                        None => panic!("Missing listenport for server {name}"),
+                        None => return Err(format!("Missing listenport for server {name}")),
 
                     },
                     "output" => output = match server.get(field_key){
@@ -186,16 +210,23 @@ pub fn parse_servers(config: &Config) -> Vec<ServerConfig> {
                         let output_checked = match output.to_string().replace("\"", "").as_str(){
                             "conf" => output.to_string().replace("\"", ""),
                             "nix" =>output.to_string().replace("\"", ""),
-                            _ => panic!("Unkown output '{output}' for server {name}")
+                            _ => return Err(format!("Unkown output '{output}' for server {name}"))
                         };
                         output_checked
                         },
                         None => "conf".to_string(),
                     },
-                    _ => panic!("Unkown entry '{}' for server {name}", field_key),
+                    _ => return Err(format!("Unkown entry '{}' for server {name}", field_key)),
                 }
             }
-            let publickey = derive_base64_public_key_from_base64_private_key(&privatekey);
+            let publickey = match derive_base64_public_key_from_base64_private_key(&privatekey) {
+                Ok(key) => key,
+                Err(e) => {
+                    return Err(format!(
+                        "Error when decoding privatekey for server {name}: {e}"
+                    ))
+                }
+            };
             let server_config = ServerConfig {
                 dns,
                 endpoint,
@@ -209,19 +240,22 @@ pub fn parse_servers(config: &Config) -> Vec<ServerConfig> {
             };
             configs.push(server_config);
         } else {
-            panic!("Server {} is not a valid TOML table", server_name)
+            return Err(format!(
+                "Server section error: '{}' is not a valid TOML table",
+                server_name
+            ));
         }
     }
-    configs
+    Ok(configs)
 }
 
-pub fn parse_clients(config: &Config) -> Vec<ClientConfig> {
+pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
     let clients = &config.clients;
-    let servers = parse_servers(&config);
-    let network = parse_network(&config);
+    let servers = parse_servers(&config).unwrap();
+    let network = parse_network(&config).unwrap();
 
     if clients.len() == 0 && network.r#type == "web" {
-        panic!("No clients configured")
+        return Err(format!("No clients configured"));
     }
 
     // TODO: test parsing error
@@ -233,17 +267,31 @@ pub fn parse_clients(config: &Config) -> Vec<ClientConfig> {
         if client.is_table() {
             let table = match client.as_table() {
                 Some(table) => table,
-                None => panic!(
-                    "Error when parsing client {}. Client is not a proper TOML table",
-                    client_name
-                ),
+                None => {
+                    return Err(format!(
+                        "Error when parsing client {}. Client is not a proper TOML table",
+                        client_name
+                    ))
+                }
             };
+            // Set mock content to overwrite and defaults
             let name: String = client_name.to_string();
-            let mut privatekey: String = "".to_string();
+            let mut privatekey: String = get_private_key();
             let mut ip: Ipv4Addr = Ipv4Addr::new(0, 0, 0, 0);
             let mut dns: Option<String> = None;
             let mut output: String = "conf".to_string();
             let mut postpone_config_generation_until_all_defined_ips_are_known = false;
+
+            // Check that all required fields are set
+            let required = ["ip", "privatekey"];
+            for key in required {
+                match client.get(key) {
+                    Some(_) => (),
+                    None => return Err(format!("Client {name} is missing required field '{key}'")),
+                }
+            }
+
+            // parse config
             for (field_key, field_value) in table.iter() {
                 match field_key.as_str() {
                     "privatekey" => {
@@ -261,11 +309,14 @@ pub fn parse_clients(config: &Config) -> Vec<ClientConfig> {
                                             ip
                                         } else {
                                             let cidr = network.cidrv4;
-                                            panic!("IP {ip} of client {name} is not in network CIDR {cidr}")
+                                            return Err(format!("IP {ip} of client {name} is not in network CIDR {cidr}"));
                                         }
                                     }
                                     Err(e) => {
-                                        panic!("Error when parsing IP of client {}: {}", &name, e)
+                                        return Err(format!(
+                                            "Error when parsing IP of client {}: {}",
+                                            &name, e
+                                        ))
                                     }
                                 }
                             }
@@ -288,17 +339,29 @@ pub fn parse_clients(config: &Config) -> Vec<ClientConfig> {
                                     match output.to_string().replace("\"", "").as_str() {
                                         "conf" => output.to_string().replace("\"", ""),
                                         "nix" => output.to_string().replace("\"", ""),
-                                        _ => panic!("Unkown output '{output}' for client {name}"),
+                                        "qr" => output.to_string().replace("\"", ""),
+                                        _ => {
+                                            return Err(format!(
+                                                "Unkown output '{output}' for client {name}"
+                                            ))
+                                        }
                                     };
                                 output_checked
                             }
                             None => "conf".to_string(),
                         }
                     }
-                    _ => panic!("Unkown entry '{}' for client {name}", field_key),
+                    _ => return Err(format!("Unkown entry '{}' for client {name}", field_key)),
                 }
             }
-            let publickey = derive_base64_public_key_from_base64_private_key(&privatekey);
+            let publickey = match derive_base64_public_key_from_base64_private_key(&privatekey) {
+                Ok(key) => key,
+                Err(e) => {
+                    return Err(format!(
+                        "Error when decoding privatekey for client {name}: {e}"
+                    ))
+                }
+            };
             let client_config: ClientConfig = ClientConfig {
                 dns,
                 ip,
@@ -334,18 +397,23 @@ pub fn parse_clients(config: &Config) -> Vec<ClientConfig> {
                             name: client.name.clone(),
                         });
                     }
-                    None => panic!(
-                        "No more IPs available for client {} in network CIDR {}",
-                        client.name, &network.cidrv4
-                    ),
+                    None => {
+                        return Err(format!(
+                            "No more IPs available for client {} in network CIDR {}",
+                            client.name, &network.cidrv4
+                        ))
+                    }
                 }
             }
         } else {
-            panic!("Client {} is not a valid TOML table", client_name)
+            return Err(format!(
+                "Clients section error: '{}' is not a valid TOML table",
+                client_name
+            ));
         }
     }
 
-    configs
+    Ok(configs)
 }
 
 fn get_next_available_ip(network_cidr: &Ipv4Net, used_ips: &mut Vec<Ipv4Addr>) -> Option<Ipv4Addr> {
@@ -353,10 +421,7 @@ fn get_next_available_ip(network_cidr: &Ipv4Net, used_ips: &mut Vec<Ipv4Addr>) -
     'get_ip: loop {
         let ip_to_check = match available_network_space.next() {
             Some(ip) => ip,
-            None => panic!(
-                "No more IPs available for client in provided CIDR: {}",
-                &network_cidr
-            ),
+            None => return None,
         };
         for ip in &used_ips[..] {
             if ip == &ip_to_check {
