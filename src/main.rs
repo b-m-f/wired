@@ -20,6 +20,10 @@ struct Args {
     #[arg(short, long, default_value_t = false)]
     rotate_keys: bool,
 
+    /// Remove existing configs
+    #[arg(short = 'f', long, default_value_t = false)]
+    force: bool,
+
     /// Assign new IPs to clients
     #[arg(short = 'i', long, default_value_t = false)]
     rotate_ips: bool,
@@ -59,11 +63,17 @@ fn main() {
         std::process::exit(1);
     });
 
-    // TODO: do not overwrite by default
-    wired::files::remove_previous_config_dir(&config_dir);
-    wired::files::create_config_dir(&config_dir);
+    if args.force {
+        let _ = wired::files::remove_previous_config_dir(&config_dir);
+    }
+    match wired::files::create_config_dir(&config_dir) {
+        Err(e) => {
+            eprintln!("Error when trying to create config dir {e}. Use --force to overwrite");
+            std::process::exit(1);
+        }
+        Ok(_) => {}
+    };
 
-    // TODO: make sure to write by chosen type
     for server_config in &server_configs[..] {
         match server_config.output.as_str() {
             "conf" => {

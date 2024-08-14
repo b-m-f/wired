@@ -292,7 +292,7 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
             }
 
             // parse config
-            for (field_key, field_value) in table.iter() {
+            for (field_key, _) in table.iter() {
                 match field_key.as_str() {
                     "privatekey" => {
                         privatekey = match client.get(field_key) {
