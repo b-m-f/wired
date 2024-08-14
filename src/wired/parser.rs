@@ -41,7 +41,7 @@ pub fn parse_network(config: &Config) -> NetworkConfig {
         // TODO: get name from config file
         name: name.to_string(),
         // TODO: make sure this is caught in parsing
-        preshared_key: match &config.network.presharedkey {
+        presharedkey: match &config.network.presharedkey {
             Some(psk) => psk.to_string(),
             None => get_preshared_key(),
         },

@@ -3,7 +3,7 @@ use ipnet::Ipv4Net;
 #[derive(Debug)]
 pub struct NetworkConfig {
     pub cidrv4: Ipv4Net,
-    pub preshared_key: String,
+    pub presharedkey: String,
     pub name: String,
     pub r#type: String,
     // // TODO: extract these bools onto the top-level

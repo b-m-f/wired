@@ -34,7 +34,7 @@ pub fn generate_server(
 AllowedIPs = {}\n\
 PublicKey = {}\n\
 PresharedKey = {}",
-            peers, peer.name, peer.ip, peer.publickey, network.preshared_key
+            peers, peer.name, peer.ip, peer.publickey, network.presharedkey
         );
         peers = format!("{}\n", peers)
     }
@@ -70,7 +70,7 @@ pub fn generate_client(
         Endpoint = {}:{}\n\
         AllowedIPs = {}\n\
         PresharedKey = {}",
-            peers, peer.publickey, peer.endpoint, peer.listenport, peer.ip, network.preshared_key
+            peers, peer.publickey, peer.endpoint, peer.listenport, peer.ip, network.presharedkey
         );
         match &peer.persistentkeepalive {
             Some(ka) => {
