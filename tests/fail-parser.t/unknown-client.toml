@@ -5,7 +5,6 @@ type = "web"
 presharedkey = "qPQ/T+4dHydnvk8cZXh+zBpZqOmLvaoxbC0W6c2gwtg="
 
 [servers]
-what = "is this?"
 [servers.server]
 endpoint = "1.1.1.1"
 ip = "10.100.1.1"

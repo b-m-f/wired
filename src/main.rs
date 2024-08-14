@@ -1,6 +1,7 @@
 mod wired;
 
 use clap::Parser;
+use wired::parser::Config;
 
 #[derive(Parser, Debug)]
 #[command(name = "wired")]
@@ -25,19 +26,17 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
-    let config = match wired::files::read_config(&args.config_file) {
-        Ok(content) => content,
+    let config: Config = match wired::files::read_config(&args.config_file) {
+        Ok(content) => wired::parser::parse_config(content),
         // TODO: catch error here
         Err(e) => panic!("{}", e),
     };
 
     let config_dir = args.config_file.to_string().replace(".toml", "");
 
-    let network_config =
-        wired::network::parse_network_config(&config, args.rotate_keys, args.rotate_ips);
-    let server_configs = wired::servers::parse_server_configs(config.servers, &network_config);
-    let client_configs =
-        wired::clients::parse_client_configs(config.clients, &server_configs, &network_config);
+    let network_config = wired::parser::parse_network(&config);
+    let server_configs = wired::parser::parse_servers(&config);
+    let client_configs = wired::parser::parse_clients(&config);
 
     // TODO: do not overwrite by default
     wired::files::remove_previous_config_dir(&config_dir);

@@ -1,14 +1,14 @@
   $ cd $TESTDIR
 Fail when server is missing ip:
   $ wired --config-file fail-server.toml
-  thread 'main' panicked at src/wired/servers.rs:175:25:
+  thread 'main' panicked at src/wired/parser.rs:98:25:
   Server configurations need an IP
   note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
   [101]
 
 Fail when client is missing ip:
   $ wired --config-file fail-client.toml
-  thread 'main' panicked at src/wired/files.rs:30:19:
+  thread 'main' panicked at src/wired/files.rs:14:19:
   Error writing config file ./full/server.conf: No such file or directory (os error 2)
   note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
   [101]

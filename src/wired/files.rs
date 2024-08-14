@@ -1,26 +1,10 @@
-use serde::Deserialize;
 use std::fs::create_dir_all;
 use std::fs::{read_to_string, File};
 use std::io::Write;
 use std::path::Path;
 
-#[derive(Debug, Deserialize)]
-pub struct NetworkConfigFromFile {
-    pub cidrv4: String,
-    pub name: String,
-    pub presharedkey: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Config {
-    pub network: NetworkConfigFromFile,
-    pub servers: toml::value::Table,
-    pub clients: toml::value::Table,
-}
-
-pub fn read_config(config: &String) -> std::io::Result<Config> {
-    let content = read_to_string(config)?;
-    Ok(toml::from_str(&content)?)
+pub fn read_config(config: &String) -> Result<String, std::io::Error> {
+    read_to_string(config)
 }
 
 pub fn write_config(path: &String, content: &String) {
