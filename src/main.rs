@@ -108,6 +108,9 @@ fn main() {
         }
     }
     // TODO: generate statefile
-    wired::state::create_statefile(&network_config, &server_configs, &client_configs);
+    let statefile_content =
+        wired::state::create_statefile(&network_config, &server_configs, &client_configs);
+    let path_string = format!("./{}.statefile", network_config.name);
+    wired::files::write_config(&path_string, &statefile_content)
     // TODO: add encryption via pass
 }

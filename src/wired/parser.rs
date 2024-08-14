@@ -57,7 +57,7 @@ pub fn parse_network(config: &Config) -> NetworkConfig {
             "presharedkey" => {
                 psk = match value.as_str() {
                     Some("") => get_preshared_key(),
-                    Some(_) => key.to_string(),
+                    Some(_) => value.to_string().replace("\"", ""),
                     None => get_preshared_key(),
                 }
             }

@@ -19,7 +19,7 @@ impl Serialize for NetworkConfig {
     {
         let mut network = serializer.serialize_struct("Network", 4)?;
         network.serialize_field("presharedkey", &self.presharedkey)?;
-        network.serialize_field("name", &self.presharedkey)?;
+        network.serialize_field("name", &self.name)?;
         network.serialize_field("type", &self.r#type)?;
         network.serialize_field("cidrv4", &self.cidrv4.to_string())?;
         network.end()

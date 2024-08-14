@@ -117,5 +117,30 @@ Confirm that configs have the correct output
   
                (no-eol)
 
+Check that statefile is correct:
+  $ cat full.statefile
+  [network]
+  presharedkey = "qPQ/T+4dHydnvk8cZXh+zBpZqOmLvaoxbC0W6c2gwtg="
+  name = "full"
+  type = "web"
+  cidrv4 = "10.100.1.0/24"
+  
+  [servers]
+  [Servers.server]
+  ip = "10.100.1.1"
+  output = "nix"
+  privatekey = "MHYE0gQavBWsRvMNMOoYB/cL3YFoiiWpWAq5PjHMw0c="
+  listenport = 20202
+  endpoint = "1.1.1.1"
+  persistentkeepalive = 5
+  
+  [clients]
+  [Clients.client]
+  ip = "10.100.1.1"
+  output = "nix"
+  dns = "10.10.10.1"
+  privatekey = "8Fp1TVFMWY0qYufoGm6qFeJXrtzU3FodpoiCkdJfQ2k="
+
 Cleanup
   $ rm -rf full
+  $ rm *.statefile
