@@ -39,29 +39,30 @@ pub fn parse_network(config: &Config) -> NetworkConfig {
 
     for (key, value) in network.iter() {
         match key.as_str() {
-            "cidrv4" => match value.get(key) {
-                Some(cidr) => {
-                    cidrv4 = match Ipv4Net::from_str(&cidr.to_string()) {
+            "cidrv4" => {
+                cidrv4 = match value.as_str() {
+                    Some(cidr) => match Ipv4Net::from_str(&cidr.to_string()) {
                         Ok(cidr) => cidr,
                         Err(e) => panic!("Error when parsing cidrv4 for network: {e}"),
-                    }
+                    },
+                    None => panic!("Network is missing cidrv4 configuration"),
                 }
-                None => panic!("Network is missing cidrv4 configuration"),
-            },
+            }
             "name" => {
-                name = match value.get(key) {
+                name = match value.as_str() {
                     Some(name) => name.to_string(),
                     None => panic!("No name specified for network"),
                 }
             }
             "presharedkey" => {
-                psk = match value.get(key) {
-                    Some(key) => key.to_string(),
+                psk = match value.as_str() {
+                    Some("") => get_preshared_key(),
+                    Some(_) => key.to_string(),
                     None => get_preshared_key(),
                 }
             }
             "type" => {
-                network_type = match value.get(key) {
+                network_type = match value.as_str() {
                     Some(network_type) => network_type.to_string(),
                     None => "web".to_string(),
                 }
@@ -100,19 +101,23 @@ pub fn parse_servers(config: &Config) -> Vec<ServerConfig> {
                     server_name
                 ),
             };
+            let mut privatekey = "".to_string();
+            let mut endpoint = "".to_string();
+            let mut dns: Option<String> = None;
+            let mut ip: Ipv4Addr = Ipv4Addr::new(0, 0, 0, 0);
+            let mut pka: Option<u16> = None;
+            let mut listenport: u16 = 51820;
+            let mut output: String = "".to_string();
             for (field_key, field_value) in table.iter() {
-                let mut privatekey = "".to_string();
-                let mut endpoint = "".to_string();
-                let mut dns: Option<String> = None;
-                let mut ip: Ipv4Addr = Ipv4Addr::new(0, 0, 0, 0);
-                let mut pka: Option<u16> = None;
-                let mut listenport: u16 = 51820;
-                let mut output: String = "".to_string();
-
                 match field_key.as_str() {
                     "privatekey" => {
                         privatekey = match server.get(field_key) {
-                            Some(key) => key.to_string().replace("\"", ""),
+                            Some(key) => match key.as_str(){
+                                Some("") => get_private_key(),
+                                Some(_) => key.to_string().replace("\"", ""),
+                                None => get_private_key(),
+
+                            }
                             None => get_private_key(),
                         }
                     }
@@ -178,10 +183,10 @@ pub fn parse_servers(config: &Config) -> Vec<ServerConfig> {
                     },
                     "output" => output = match server.get(field_key){
                         Some(output) => {
-                        let output_checked = match output.to_string().as_str(){
-                            "conf" => output.to_string(),
-                            "nix" =>output.to_string(),
-                            _ => panic!("Unkown output {output} for server {name}")
+                        let output_checked = match output.to_string().replace("\"", "").as_str(){
+                            "conf" => output.to_string().replace("\"", ""),
+                            "nix" =>output.to_string().replace("\"", ""),
+                            _ => panic!("Unkown output '{output}' for server {name}")
                         };
                         output_checked
                         },
@@ -189,20 +194,20 @@ pub fn parse_servers(config: &Config) -> Vec<ServerConfig> {
                     },
                     _ => panic!("Unkown entry '{}' for server {name}", field_key),
                 }
-                let publickey = derive_base64_public_key_from_base64_private_key(&privatekey);
-                let server_config = ServerConfig {
-                    dns,
-                    endpoint,
-                    privatekey,
-                    publickey,
-                    listenport,
-                    output,
-                    name: name.to_string(),
-                    ip,
-                    persistentkeepalive: pka,
-                };
-                configs.push(server_config);
             }
+            let publickey = derive_base64_public_key_from_base64_private_key(&privatekey);
+            let server_config = ServerConfig {
+                dns,
+                endpoint,
+                privatekey,
+                publickey,
+                listenport,
+                output,
+                name: name.to_string(),
+                ip,
+                persistentkeepalive: pka,
+            };
+            configs.push(server_config);
         } else {
             panic!("Server {} is not a valid TOML table", server_name)
         }
@@ -233,14 +238,13 @@ pub fn parse_clients(config: &Config) -> Vec<ClientConfig> {
                     client_name
                 ),
             };
+            let name: String = client_name.to_string();
+            let mut privatekey: String = "".to_string();
+            let mut ip: Ipv4Addr = Ipv4Addr::new(0, 0, 0, 0);
+            let mut dns: Option<String> = None;
+            let mut output: String = "conf".to_string();
+            let mut postpone_config_generation_until_all_defined_ips_are_known = false;
             for (field_key, field_value) in table.iter() {
-                let name: String = client_name.to_string();
-                let mut privatekey: String = "".to_string();
-                let mut ip: Ipv4Addr = Ipv4Addr::new(0, 0, 0, 0);
-                let mut dns: Option<String> = None;
-                let mut output: String = "conf".to_string();
-                let mut postpone_config_generation_until_all_defined_ips_are_known = false;
-                println!("{}={}", field_key, field_value);
                 match field_key.as_str() {
                     "privatekey" => {
                         privatekey = match client.get(field_key) {
@@ -279,26 +283,34 @@ pub fn parse_clients(config: &Config) -> Vec<ClientConfig> {
                     }
                     "output" => {
                         output = match client.get(field_key) {
-                            Some(output) => output.to_string().replace("\"", ""),
-                            None => output,
+                            Some(output) => {
+                                let output_checked =
+                                    match output.to_string().replace("\"", "").as_str() {
+                                        "conf" => output.to_string().replace("\"", ""),
+                                        "nix" => output.to_string().replace("\"", ""),
+                                        _ => panic!("Unkown output '{output}' for client {name}"),
+                                    };
+                                output_checked
+                            }
+                            None => "conf".to_string(),
                         }
                     }
                     _ => panic!("Unkown entry '{}' for client {name}", field_key),
                 }
-                let publickey = derive_base64_public_key_from_base64_private_key(&privatekey);
-                let client_config: ClientConfig = ClientConfig {
-                    dns,
-                    ip,
-                    name,
-                    privatekey,
-                    publickey,
-                    output,
-                };
-                if postpone_config_generation_until_all_defined_ips_are_known {
-                    configs_without_ip.push(client_config);
-                } else {
-                    configs.push(client_config);
-                }
+            }
+            let publickey = derive_base64_public_key_from_base64_private_key(&privatekey);
+            let client_config: ClientConfig = ClientConfig {
+                dns,
+                ip,
+                name,
+                privatekey,
+                publickey,
+                output,
+            };
+            if postpone_config_generation_until_all_defined_ips_are_known {
+                configs_without_ip.push(client_config);
+            } else {
+                configs.push(client_config);
             }
             // Loop is done, all specified IPs (servers and clients) are known now - so collect them
             // Then insert IPs into the clients that have not specified them

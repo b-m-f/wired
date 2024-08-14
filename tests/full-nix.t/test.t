@@ -4,7 +4,10 @@ Make sure all config files get created
 
 Check that expected files were created
   $ ls full
+  client.key
   client.nix
+  full.psk
+  server.key
   server.nix
 
 Confirm that configs have the correct output
@@ -34,7 +37,7 @@ Confirm that configs have the correct output
                        PublicKey = "vvLcDOPrSPIflR8dJtM5Q3iqQCSCPvoyFaLrUlWoIHM=";
                        AllowedIPs = ["10.100.1.1"];
                        Endpoint = "1.1.1.1:20202"
-                       
+                       PersistentKeepalive = 5;
                        PresharedKeyFile="UPDATE_THIS_VIA_YOUR_SECRET_MANAGER."
                      };
                   }
@@ -113,3 +116,6 @@ Confirm that configs have the correct output
   
   
                (no-eol)
+
+Cleanup
+  $ rm -rf full

@@ -1,6 +1,8 @@
 use std::net::Ipv4Addr;
 
-#[derive(Debug)]
+use serde::Serialize;
+
+#[derive(Debug, Serialize)]
 pub struct ClientConfig {
     pub publickey: String,
     pub ip: Ipv4Addr,

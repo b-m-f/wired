@@ -6,3 +6,4 @@ pub mod outputs;
 pub mod parser;
 pub mod qr;
 pub mod servers;
+pub mod state;

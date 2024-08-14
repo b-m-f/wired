@@ -62,17 +62,20 @@ fn main() {
                 wired::files::write_config(&config_path_string, &finished_config);
 
                 let privatekey_path_string =
-                    format!("./{}/{}.key", network_config.name, network_config.name);
+                    format!("./{}/{}.key", network_config.name, server_config.name);
                 wired::files::write_config(&privatekey_path_string, &server_config.privatekey);
 
                 let presharedkey_path_string =
                     format!("./{}/{}.psk", network_config.name, network_config.name);
                 wired::files::write_config(&presharedkey_path_string, &network_config.presharedkey)
             }
-            _ => panic!("Unknown output format for server {}", server_config.name),
+            _ => panic!(
+                "Unknown output format {} for server {}",
+                server_config.output, server_config.name
+            ),
         }
     }
-    for client_config in client_configs {
+    for client_config in &client_configs {
         match client_config.output.as_str() {
             "conf" => {
                 let path_string = format!("./{}/{}.conf", network_config.name, client_config.name);
@@ -88,7 +91,7 @@ fn main() {
                 wired::files::write_config(&config_path_string, &finished_config);
 
                 let privatekey_path_string =
-                    format!("./{}/{}.key", network_config.name, network_config.name);
+                    format!("./{}/{}.key", network_config.name, client_config.name);
                 wired::files::write_config(&privatekey_path_string, &client_config.privatekey);
 
                 let presharedkey_path_string =
@@ -105,5 +108,6 @@ fn main() {
         }
     }
     // TODO: generate statefile
+    wired::state::create_statefile(&network_config, &server_configs, &client_configs);
     // TODO: add encryption via pass
 }

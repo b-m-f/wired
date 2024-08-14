@@ -1,6 +1,7 @@
+use serde::Serialize;
 use std::net::Ipv4Addr;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ServerConfig {
     pub endpoint: String,
     pub ip: Ipv4Addr,
