@@ -1,6 +1,7 @@
 use super::clients::ClientConfig;
 use super::crypto::{derive_base64_public_key_from_base64_private_key, get_private_key};
 use super::network::{self, NetworkConfig};
+use std::fmt::format;
 use std::net::Ipv4Addr;
 
 #[derive(Debug)]
@@ -23,6 +24,24 @@ impl ServerConfig {
         let ip = self.ip;
         let port = self.port;
 
+        let mut peers: Vec<String> = Vec::new();
+
+        for client in clients {
+            let publickey = client.public_key.clone();
+            let ip = client.ip;
+            let peer = format!(
+                "{{
+          wireguardPeerConfig = {{
+            PublicKey = \"{publickey}\";
+            AllowedIPs =[\"{ip}\"];
+            PresharedKeyFile=\"UPDATE_THIS_VIA_YOUR_SECRET_MANAGER.\";
+          }};
+        }}"
+            );
+            peers.push(peer);
+        }
+
+        let peers: String = peers.into_iter().collect();
         // TODO: create peers
 
         return format!(
@@ -49,8 +68,7 @@ impl ServerConfig {
           ListenPort = {port};
         }};
         wireguardPeers = [
-       }}
-
+          {peers}
         ];
       }};
     }};

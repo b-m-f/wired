@@ -19,14 +19,14 @@
                 };
                 wireguardPeers = [
                   {
-                     wireguardPeerConfig = {
-                      PublicKey = "4xwoi5qsTROaHoeRmMFwe9V3+ddVM/QfhBZQ1Tt7slg=";
-                      AllowedIPs = ["10.10.10.1"];
-                      Endpoint = "winstenparty.club:10101"
-                      PersistentKeepalive = 15;
-                      PresharedKeyFile="UPDATE_THIS_VIA_YOUR_SECRET_MANAGER."
-                     };
-                  }
+                   wireguardPeerConfig = {
+                     PublicKey = "vvLcDOPrSPIflR8dJtM5Q3iqQCSCPvoyFaLrUlWoIHM=";
+                     AllowedIPs = ["10.100.1.1"];
+                     Endpoint = "1.1.1.1:20202"
+                     
+                     PresharedKeyFile="UPDATE_THIS_VIA_YOUR_SECRET_MANAGER."
+                   };
+                }
                 ];
               };
             };

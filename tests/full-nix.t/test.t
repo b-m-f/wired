@@ -30,14 +30,14 @@ Confirm that configs have the correct output
                   };
                   wireguardPeers = [
                     {
-                       wireguardPeerConfig = {
-                        PublicKey = "4xwoi5qsTROaHoeRmMFwe9V3+ddVM/QfhBZQ1Tt7slg=";
-                        AllowedIPs = ["10.10.10.1"];
-                        Endpoint = "winstenparty.club:10101"
-                        PersistentKeepalive = 15;
-                        PresharedKeyFile="UPDATE_THIS_VIA_YOUR_SECRET_MANAGER."
-                       };
-                    }
+                     wireguardPeerConfig = {
+                       PublicKey = "vvLcDOPrSPIflR8dJtM5Q3iqQCSCPvoyFaLrUlWoIHM=";
+                       AllowedIPs = ["10.100.1.1"];
+                       Endpoint = "1.1.1.1:20202"
+                       
+                       PresharedKeyFile="UPDATE_THIS_VIA_YOUR_SECRET_MANAGER."
+                     };
+                  }
                   ];
                 };
               };
@@ -71,7 +71,7 @@ Confirm that configs have the correct output
     lib,
     ...
   }: {
-    networking.firewall.allowedUDPPorts = [10101];
+    networking.firewall.allowedUDPPorts = [20202];
     networking.useNetworkd = true;
     systemd.network = {
       enable = true;
@@ -87,8 +87,13 @@ Confirm that configs have the correct output
             ListenPort = 20202;
           };
           wireguardPeers = [
-         }
-  
+            {
+            wireguardPeerConfig = {
+              PublicKey = "92hH4QGMnvO0bnNMt8Bq3u17Sp0B5zPKWp7firxesGM=";
+              AllowedIPs =["10.100.1.1"];
+              PresharedKeyFile="UPDATE_THIS_VIA_YOUR_SECRET_MANAGER.";
+            };
+          }
           ];
         };
       };

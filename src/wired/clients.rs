@@ -27,6 +27,31 @@ impl ClientConfig {
             Some(dns) => format!("dns = \"{}\"", dns),
             None => "".to_string(),
         };
+        let mut peers: Vec<String> = Vec::new();
+
+        for server in servers {
+            let publickey = server.public_key.clone();
+            let ip = server.ip;
+            let endpoint = server.endpoint.clone();
+            let listenport = server.port;
+            let persistentkeepalive: String = match server.persistent_keepalive {
+                Some(pka) => format!("PersistentKeepalive = {};", pka),
+                None => "".to_string(),
+            };
+            let peer = format!(
+                "{{
+                   wireguardPeerConfig = {{
+                     PublicKey = \"{publickey}\";
+                     AllowedIPs = [\"{ip}\"];
+                     Endpoint = \"{endpoint}:{listenport}\"
+                     {persistentkeepalive}
+                     PresharedKeyFile=\"UPDATE_THIS_VIA_YOUR_SECRET_MANAGER.\"
+                   }};
+                }}"
+            );
+            peers.push(peer)
+        }
+        let peers: String = peers.into_iter().collect();
 
         // TODO: add integration of secret manager
         return format!(
@@ -50,15 +75,7 @@ impl ClientConfig {
                   PrivateKeyFile = \"UPDATE_THIS_VIA_YOUR_SECRET_MANAGER.\"
                 }};
                 wireguardPeers = [
-                  {{
-                     wireguardPeerConfig = {{
-                      PublicKey = \"4xwoi5qsTROaHoeRmMFwe9V3+ddVM/QfhBZQ1Tt7slg=\";
-                      AllowedIPs = [\"10.10.10.1\"];
-                      Endpoint = \"winstenparty.club:10101\"
-                      PersistentKeepalive = 15;
-                      PresharedKeyFile=\"UPDATE_THIS_VIA_YOUR_SECRET_MANAGER.\"
-                     }};
-                  }}
+                  {peers}
                 ];
               }};
             }};
