@@ -130,93 +130,111 @@ pub fn parse_clients(config: &Config) -> Vec<ClientConfig> {
     let clients = &config.clients;
     let servers = parse_servers(&config);
     let network = parse_network(&config);
+
     // TODO: test parsing error
     let mut configs: Vec<ClientConfig> = Vec::new();
-    let mut used_ips: Vec<Ipv4Addr> = [].to_vec();
-    for server in servers {
-        used_ips.push(server.ip)
-    }
 
-    let mut clients_without_ip = HashMap::new();
+    let mut configs_without_ip: Vec<ClientConfig> = Vec::new();
 
-    for (key, value) in clients.iter() {
-        let private_key = match value.get("privatekey") {
-            Some(key) => key.to_string().replace("\"", ""),
-            None => get_private_key(),
-        };
-        let ip: Option<String> = match value.get("ip") {
-            Some(ip) => Some(ip.to_string().replace("\"", "")),
-            None => {
-                clients_without_ip.insert(key, value);
-                None
-            }
-        };
-        match ip {
-            Some(ip) => {
+    for (client_name, client) in clients.iter() {
+        if client.is_table() {
+            let table = match client.as_table() {
+                Some(table) => table,
+                None => panic!(
+                    "Error when parsing client {}. Client is not a proper TOML table",
+                    client_name
+                ),
+            };
+            for (field_key, field_value) in table.iter() {
+                let name: String = client_name.to_string();
+                let mut private_key: String = "".to_string();
+                let mut ip: Ipv4Addr = Ipv4Addr::new(0, 0, 0, 0);
+                let mut dns: Option<String> = None;
+                let mut output: String = "conf".to_string();
+                let mut postpone_config_generation_until_all_defined_ips_are_known = false;
+                println!("{}={}", field_key, field_value);
+                match field_key.as_str() {
+                    "privatekey" => {
+                        private_key = match client.get(field_key) {
+                            Some(key) => key.to_string().replace("\"", ""),
+                            None => get_private_key(),
+                        }
+                    }
+                    "ip" => {
+                        ip = match client.get(field_key) {
+                            Some(ip) => {
+                                match Ipv4Addr::from_str(&ip.to_string().replace("\"", "")) {
+                                    Ok(ip) => ip,
+                                    Err(e) => {
+                                        panic!("Error when parsing IP of client {}: {}", &name, e)
+                                    }
+                                }
+                            }
+                            None => {
+                                postpone_config_generation_until_all_defined_ips_are_known = true;
+                                Ipv4Addr::new(0, 0, 0, 0)
+                            }
+                        }
+                    }
+                    "dns" => {
+                        dns = match client.get(field_key) {
+                            Some(dns) => Some(dns.to_string().replace("\"", "")),
+                            None => None,
+                        }
+                    }
+                    "output" => {
+                        output = match client.get(field_key) {
+                            Some(output) => output.to_string().replace("\"", ""),
+                            None => output,
+                        }
+                    }
+                    _ => panic!("Unkown entry: {}", field_key),
+                }
+                let public_key = derive_base64_public_key_from_base64_private_key(&private_key);
                 let client_config: ClientConfig = ClientConfig {
-                    ip: match Ipv4Addr::from_str(&ip) {
-                        Ok(ip) => ip,
-                        // TODO: catch error
-                        Err(e) => panic!("{}", e),
-                    },
-                    name: key.to_string(),
-                    dns: match value.get("dns") {
-                        Some(dns) => Some(dns.to_string().replace("\"", "")),
-                        None => None,
-                    },
-                    public_key: derive_base64_public_key_from_base64_private_key(&private_key),
-                    private_key,
-                    output: match value.get("output") {
-                        Some(r#type) => r#type.to_string().replace("\"", ""),
-                        None => "conf".to_string(),
-                    },
-                };
-
-                configs.push(client_config);
-            }
-
-            None => {
-                // Refer to explanation on the second loop
-                clients_without_ip.insert(key, value);
-                ()
-            }
-        }
-    }
-    // This has to be done to make sure that newly added clients don't assign early IP addresses,
-    // that might be already in use, but whose config files were not parsed yet.
-    // Running a second loop over the clients that have no IP set -> probably because they have no
-    // config file makes sure, that the used_ips accumulator is filled with existing configs before
-    // new IPs are given out
-    for (key, value) in clients_without_ip.iter() {
-        let private_key = match value.get("privatekey") {
-            Some(key) => key.to_string().replace("\"", ""),
-            None => get_private_key(),
-        };
-        let free_ip = get_next_available_ip(&network.cidrv4, &mut used_ips);
-        match free_ip {
-            Some(ip) => {
-                let client_config: ClientConfig = ClientConfig {
+                    dns,
                     ip,
-                    name: key.to_string(),
-                    dns: match value.get("dns") {
-                        Some(dns) => Some(dns.to_string().replace("\"", "")),
-                        None => None,
-                    },
-                    public_key: derive_base64_public_key_from_base64_private_key(&private_key),
+                    name,
                     private_key,
-                    output: match value.get("output") {
-                        Some(r#type) => r#type.to_string().replace("\"", ""),
-                        None => "conf".to_string(),
-                    },
+                    public_key,
+                    output,
                 };
-
-                configs.push(client_config);
+                if postpone_config_generation_until_all_defined_ips_are_known {
+                    configs_without_ip.push(client_config);
+                } else {
+                    configs.push(client_config);
+                }
             }
-
-            None => panic!(
-                "No more IPs available for client in provided CIDR: {}",
-                &network.cidrv4
-            ),
+            // Loop is done, all specified IPs (servers and clients) are known now - so collect them
+            // Then insert IPs into the clients that have not specified them
+            let mut used_ips: Vec<Ipv4Addr> = [].to_vec();
+            for server in &servers[..] {
+                used_ips.push(server.ip)
+            }
+            for client in &configs[..] {
+                used_ips.push(client.ip)
+            }
+            for client in &configs_without_ip[..] {
+                let free_ip = get_next_available_ip(&network.cidrv4, &mut used_ips);
+                match free_ip {
+                    Some(ip) => {
+                        configs.push(ClientConfig {
+                            public_key: client.public_key.clone(),
+                            ip,
+                            output: client.output.clone(),
+                            dns: client.dns.clone(),
+                            private_key: client.private_key.clone(),
+                            name: client.name.clone(),
+                        });
+                    }
+                    None => panic!(
+                        "No more IPs available for client {} in network CIDR {}",
+                        client.name, &network.cidrv4
+                    ),
+                }
+            }
+        } else {
+            panic!("Client {} is not a valid TOML table", client_name)
         }
     }
 
