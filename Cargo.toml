@@ -10,7 +10,7 @@ log = "0.4.0"
 env_logger = "0.9.0"
 serde = { version = "1.0.152", features = ["derive"] }
 toml = "0.5.10"
-base64 = "0.20.0"
+base64 = "0.22.1"
 rand = { version = "0.7.3", features = ["getrandom"] }
 ipnet = "2.7.0"
 x25519-dalek = "1.2.0"

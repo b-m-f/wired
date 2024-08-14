@@ -28,7 +28,7 @@ pub fn parse_network(config: &Config) -> Result<NetworkConfig, String> {
 
     let mut cidrv4: Ipv4Net = Ipv4Net::new(Ipv4Addr::new(0, 0, 0, 0), 0).unwrap();
     let mut name = "".to_string();
-    let mut psk = get_preshared_key();
+    let mut psk = get_preshared_key()?;
     let mut network_type = "web".to_string();
 
     // Check that all required fields are set
@@ -61,9 +61,9 @@ pub fn parse_network(config: &Config) -> Result<NetworkConfig, String> {
             }
             "presharedkey" => {
                 psk = match value.as_str() {
-                    Some("") => get_preshared_key(),
+                    Some("") => get_preshared_key()?,
                     Some(_) => value.to_string().replace("\"", ""),
-                    None => get_preshared_key(),
+                    None => get_preshared_key()?,
                 }
             }
             "type" => {
@@ -109,7 +109,7 @@ pub fn parse_servers(config: &Config) -> Result<Vec<ServerConfig>, String> {
                 }
             };
             // Set mock content to overwrite and defaults
-            let mut privatekey = get_private_key();
+            let mut privatekey = get_private_key()?;
             let mut endpoint = "".to_string();
             let mut dns: Option<String> = None;
             let mut ip: Ipv4Addr = Ipv4Addr::new(0, 0, 0, 0);
@@ -130,12 +130,12 @@ pub fn parse_servers(config: &Config) -> Result<Vec<ServerConfig>, String> {
                     "privatekey" => {
                         privatekey = match server.get(field_key) {
                             Some(key) => match key.as_str(){
-                                Some("") => get_private_key(),
+                                Some("") => get_private_key()?,
                                 Some(_) => key.to_string().replace("\"", ""),
-                                None => get_private_key(),
+                                None => get_private_key()?,
 
                             }
-                            None => get_private_key(),
+                            None => get_private_key()?,
                         }
                     }
                     "endpoint" => {
@@ -276,7 +276,7 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
             };
             // Set mock content to overwrite and defaults
             let name: String = client_name.to_string();
-            let mut privatekey: String = get_private_key();
+            let mut privatekey: String = get_private_key()?;
             let mut ip: Ipv4Addr = Ipv4Addr::new(0, 0, 0, 0);
             let mut dns: Option<String> = None;
             let mut output: String = "conf".to_string();
@@ -297,7 +297,7 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
                     "privatekey" => {
                         privatekey = match client.get(field_key) {
                             Some(key) => key.to_string().replace("\"", ""),
-                            None => get_private_key(),
+                            None => get_private_key()?,
                         }
                     }
                     "ip" => {
