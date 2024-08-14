@@ -2,8 +2,8 @@
 Create from full config:
 
   $ wired --config-file full.toml
-  thread 'main' panicked at src/wired/parser.rs:157:26:
-  Unkown entry 'allowedips' for server server
+  thread 'main' panicked at src/wired/parser.rs:49:25:
+  Network is missing cidrv4 configuration
   note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
   [101]
 

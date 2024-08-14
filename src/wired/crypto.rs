@@ -1,19 +1,15 @@
-use log::debug;
 use rand::rngs::OsRng;
 use rand::RngCore;
 use x25519_dalek::{PublicKey, StaticSecret};
 
 struct KeyPairBase64 {
-    public: String,
     private: String,
 }
 
 fn generate_base64_keypair() -> KeyPairBase64 {
     let secret = StaticSecret::new(OsRng);
-    let public = PublicKey::from(&secret);
     KeyPairBase64 {
         private: base64::encode(secret.to_bytes()),
-        public: base64::encode(public.to_bytes()),
     }
 }
 

@@ -13,15 +13,8 @@ use super::network::NetworkConfig;
 use super::servers::ServerConfig;
 
 #[derive(Debug, Deserialize)]
-pub struct NetworkConfigFromFile {
-    pub cidrv4: String,
-    pub name: String,
-    pub presharedkey: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
 pub struct Config {
-    pub network: NetworkConfigFromFile,
+    pub network: toml::value::Table,
     pub servers: toml::value::Table,
     pub clients: toml::value::Table,
 }
@@ -33,22 +26,59 @@ pub fn parse_config(config: String) -> Config {
 }
 
 pub fn parse_network(config: &Config) -> NetworkConfig {
+    let network = config.network.clone();
+
+    let mut cidrv4: Ipv4Net = Ipv4Net::new(Ipv4Addr::new(0, 0, 0, 0), 0).unwrap();
+    let mut name = "".to_string();
+    let mut psk = "".to_string();
+    let mut network_type = "".to_string();
+
+    if network.len() == 0 {
+        panic!("No network configured")
+    }
+
+    for (key, value) in network.iter() {
+        match key.as_str() {
+            "cidrv4" => match value.get(key) {
+                Some(cidr) => {
+                    cidrv4 = match Ipv4Net::from_str(&cidr.to_string()) {
+                        Ok(cidr) => cidr,
+                        Err(e) => panic!("Error when parsing cidrv4 for network: {e}"),
+                    }
+                }
+                None => panic!("Network is missing cidrv4 configuration"),
+            },
+            "name" => {
+                name = match value.get(key) {
+                    Some(name) => name.to_string(),
+                    None => panic!("No name specified for network"),
+                }
+            }
+            "presharedkey" => {
+                psk = match value.get(key) {
+                    Some(key) => key.to_string(),
+                    None => get_preshared_key(),
+                }
+            }
+            "type" => {
+                network_type = match value.get(key) {
+                    Some(network_type) => network_type.to_string(),
+                    None => "web".to_string(),
+                }
+            }
+            _ => panic!("Unkown field {key} specified for network"),
+        }
+    }
     // TODO: test parsing errors
-    let cidrv4: Ipv4Net = config.network.cidrv4.parse().unwrap();
-    let name: &String = &config.network.name;
-    NetworkConfig {
+    return NetworkConfig {
         cidrv4,
         // TODO: get name from config file
-        name: name.to_string(),
+        name,
         // TODO: make sure this is caught in parsing
-        presharedkey: match &config.network.presharedkey {
-            Some(psk) => psk.to_string(),
-            None => get_preshared_key(),
-        },
-        // TODO: Parse and set web as default
+        presharedkey: psk, // TODO: Parse and set web as default
         // TODO: Make own doc file for network types
-        r#type: "web".to_string(),
-    }
+        r#type: network_type,
+    };
 }
 
 pub fn parse_servers(config: &Config) -> Vec<ServerConfig> {
@@ -56,6 +86,9 @@ pub fn parse_servers(config: &Config) -> Vec<ServerConfig> {
     let network = parse_network(&config);
     // TODO: test parsing error
     let mut configs: Vec<ServerConfig> = Vec::new();
+    if servers.len() == 0 {
+        panic!("No servers configured")
+    }
 
     for (server_name, server) in servers.iter() {
         if server.is_table() {
@@ -181,6 +214,10 @@ pub fn parse_clients(config: &Config) -> Vec<ClientConfig> {
     let clients = &config.clients;
     let servers = parse_servers(&config);
     let network = parse_network(&config);
+
+    if clients.len() == 0 && network.r#type == "web" {
+        panic!("No clients configured")
+    }
 
     // TODO: test parsing error
     let mut configs: Vec<ClientConfig> = Vec::new();

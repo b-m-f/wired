@@ -2,7 +2,7 @@
 Error when missing servers:
 
   $ wired --config-file missing-servers.toml
-  thread 'main' panicked at src/wired/parser.rs:31:19:
+  thread 'main' panicked at src/wired/parser.rs:24:19:
   Error when parsing configuration: missing field `servers` at line 9 column 1
   note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
   [101]
@@ -10,15 +10,15 @@ Error when missing servers:
 Error when unknown server config is encountered:
 
   $ wired --config-file unknown-server.toml
-  thread 'main' panicked at src/wired/parser.rs:157:26:
-  Unkown entry 'allowedips' for server server
+  thread 'main' panicked at src/wired/parser.rs:49:25:
+  Network is missing cidrv4 configuration
   note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
   [101]
 
 Error when missing clients:
 
   $ wired --config-file missing-clients.toml
-  thread 'main' panicked at src/wired/parser.rs:31:19:
+  thread 'main' panicked at src/wired/parser.rs:24:19:
   Error when parsing configuration: missing field `clients` at line 8 column 1
   note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
   [101]
@@ -26,7 +26,7 @@ Error when missing clients:
 Error when unknown client config is encountered:
 
   $ wired --config-file unknown-client.toml
-  thread 'main' panicked at src/wired/parser.rs:157:26:
-  Unkown entry 'allowedips' for server server
+  thread 'main' panicked at src/wired/parser.rs:49:25:
+  Network is missing cidrv4 configuration
   note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
   [101]
