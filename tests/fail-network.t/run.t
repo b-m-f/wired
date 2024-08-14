@@ -1,7 +1,12 @@
   $ cd $TESTDIR
 Fail when network is missing:
   $ wired --config-file fail-missing.toml
-  Error when parsing configuration: missing field `network` at line 10 column 1
+  Error when parsing configuration: TOML parse error at line 1, column 1
+    |
+  1 | [servers]
+    | ^
+  missing field `network`
+  
   [1]
 
 Fail when network is missing cidrv4:

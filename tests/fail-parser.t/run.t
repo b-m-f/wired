@@ -2,7 +2,12 @@
 Error when missing servers:
 
   $ wired --config-file missing-servers.toml
-  Error when parsing configuration: missing field `servers` at line 9 column 1
+  Error when parsing configuration: TOML parse error at line 1, column 1
+    |
+  1 | [network]
+    | ^
+  missing field `servers`
+  
   [1]
 
 Error when unknown server config is encountered:
@@ -14,7 +19,12 @@ Error when unknown server config is encountered:
 Error when missing clients:
 
   $ wired --config-file missing-clients.toml
-  Error when parsing configuration: missing field `clients` at line 8 column 1
+  Error when parsing configuration: TOML parse error at line 1, column 1
+    |
+  1 | [network]
+    | ^
+  missing field `clients`
+  
   [1]
 
 Error when unknown client config is encountered:
