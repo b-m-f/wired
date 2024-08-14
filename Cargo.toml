@@ -6,16 +6,11 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-log = "0.4.0"
-env_logger = "0.9.0"
-serde = { version = "1.0.152", features = ["derive"] }
-toml = "0.5.10"
-base64 = "0.22.1"
-rand = { version = "0.7.3", features = ["getrandom"] }
+serde = { version = "1.0.207", features = ["derive"] }
+toml = "0.8.19"
 ipnet = "2.7.0"
-x25519-dalek = "1.2.0"
-qrcode = "0.11"
-image = "0.22"
-clap = { version = "4.0.32", features = ["derive"] }
+qrcode = "0.14.1"
+image = "0.25.2"
+clap = { version = "4.5.15", features = ["derive"] }
 [profile.release]
 opt-level = 3
