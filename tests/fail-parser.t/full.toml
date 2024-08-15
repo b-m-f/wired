@@ -12,9 +12,11 @@ listenport =  20202
 persistentkeepalive = 5
 privatekey = "MHYE0gQavBWsRvMNMOoYB/cL3YFoiiWpWAq5PjHMw0c="
 output = "nix"
+encryption = "none"
 
 [clients]
 [clients.client]
 ip = "10.100.1.1"
 privatekey = "8Fp1TVFMWY0qYufoGm6qFeJXrtzU3FodpoiCkdJfQ2k="
 output = "nix"
+encryption = "none"

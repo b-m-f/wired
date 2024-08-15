@@ -12,3 +12,4 @@ listenport =  20202
 persistentkeepalive = 5
 privatekey = "MHYE0gQavBWsRvMNMOoYB/cL3YFoiiWpWAq5PjHMw0c="
 output = "nix"
+encryption = "none"

@@ -3,3 +3,4 @@ wireguard.toml
 wireguard
 .direnv
 ./full.toml
+*.t.err
