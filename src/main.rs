@@ -9,7 +9,7 @@ use wired::{
 #[derive(Parser, Debug)]
 #[command(name = "wired")]
 #[command(author = "b-m-f <maximilian@sodawa.com>")]
-#[command(version = "1.0")]
+#[command(version = "2.0")]
 #[command(about = "WireGuard network config generator", long_about = None)]
 struct Args {
     /// Config file to parse
