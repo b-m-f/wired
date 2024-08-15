@@ -108,7 +108,6 @@ pub fn generate_server(
           {peers}
         ];
       }};
-    }};
   systemd.network.networks.{name}= {{
     matchConfig.Name = \"{name}\";
     address = [\"{ip}/32\"];

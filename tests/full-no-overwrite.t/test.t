@@ -12,7 +12,7 @@ Check that expected files were created
 
 Make sure configs wont be overwritten
   $ wired --config-file full.toml
-  Error when trying to create config dir Config directory already exists. Use --force to overwrite
+  Error when trying to create config dir Config directory full already exists. Use --force to overwrite
   [1]
 
 Works with --force

@@ -97,7 +97,6 @@ Confirm that configs have the correct output
           }
           ];
         };
-      };
     systemd.network.networks.full= {
       matchConfig.Name = "full";
       address = ["10.100.1.1/32"];
