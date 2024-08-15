@@ -197,7 +197,6 @@ pub fn generate_client(
                   {peers}
                 ];
               }};
-            }};
         systemd.network.networks.{name}= {{
               matchConfig.Name = \"{name}\";
               address = [
