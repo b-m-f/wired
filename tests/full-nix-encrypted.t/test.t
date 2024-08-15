@@ -28,7 +28,7 @@ Confirm that configs have the correct output
             deployment.keys."wg-full.key" = {
               keyCommand = [
                 "pass"
-                "wireguard/full/client.key"
+                "wired/full/client.key"
               ];
   
               destDir = "/etc/wired";
@@ -40,7 +40,7 @@ Confirm that configs have the correct output
             deployment.keys."wg-full.psk" = {
               keyCommand = [
                 "pass"
-                "wireguard/full/psk"
+                "wired/full/full.psk"
               ];
   
               destDir = "/etc/wired";
@@ -52,7 +52,6 @@ Confirm that configs have the correct output
               
             systemd.network.enable = true;
             systemd.network.netdevs."10-full"= {
-                "10-full" = {
                   netdevConfig = {
                     Kind = "wireguard";
                     Name = "full";
@@ -60,16 +59,16 @@ Confirm that configs have the correct output
                   };
                   wireguardConfig = {
                     #Must be readable by the systemd.network user
-                    PrivateKeyFile = "/etc/wired/wg-client.key"
+                    PrivateKeyFile = "/etc/wired/wg-client.key";
                   };
                   wireguardPeers = [
                     {
                      wireguardPeerConfig = {
                        PublicKey = "vvLcDOPrSPIflR8dJtM5Q3iqQCSCPvoyFaLrUlWoIHM=";
                        AllowedIPs = ["10.100.1.1"];
-                       Endpoint = "1.1.1.1:20202"
+                       Endpoint = "1.1.1.1:20202";
                        PersistentKeepalive = 5;
-                       PresharedKeyFile="/etc/wired/wg-full.psk"
+                       PresharedKeyFile="/etc/wired/wg-full.psk";
                      };
                   }
                   ];
@@ -109,7 +108,7 @@ Confirm that configs have the correct output
             deployment.keys."wg-full.key" = {
               keyCommand = [
                 "pass"
-                "wireguard/full/server.key"
+                "wired/full/server.key"
               ];
   
               destDir = "/etc/wired";
@@ -121,7 +120,7 @@ Confirm that configs have the correct output
             deployment.keys."wg-full.psk" = {
               keyCommand = [
                 "pass"
-                "wireguard/full/psk"
+                "wired/full/full.psk"
               ];
   
               destDir = "/etc/wired";

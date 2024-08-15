@@ -21,7 +21,6 @@ Confirm that configs have the correct output
             
             systemd.network.enable = true;
             systemd.network.netdevs."10-full"= {
-                "10-full" = {
                   netdevConfig = {
                     Kind = "wireguard";
                     Name = "full";
@@ -29,16 +28,16 @@ Confirm that configs have the correct output
                   };
                   wireguardConfig = {
                     #Must be readable by the systemd.network user
-                    PrivateKeyFile = "Use the provided client.key file"
+                    PrivateKeyFile = "Use the provided client.key file";
                   };
                   wireguardPeers = [
                     {
                      wireguardPeerConfig = {
                        PublicKey = "vvLcDOPrSPIflR8dJtM5Q3iqQCSCPvoyFaLrUlWoIHM=";
                        AllowedIPs = ["10.100.1.1"];
-                       Endpoint = "1.1.1.1:20202"
+                       Endpoint = "1.1.1.1:20202";
                        PersistentKeepalive = 5;
-                       PresharedKeyFile="Use the provided full.psk file"
+                       PresharedKeyFile="Use the provided full.psk file";
                      };
                   }
                   ];

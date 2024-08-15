@@ -10,7 +10,7 @@ pub fn run(command: String, args: &[String]) -> Result<String, String> {
     }
     match cmd.output() {
         Ok(output) => match String::from_utf8(output.stdout) {
-            Ok(string) => return Ok(string),
+            Ok(string) => return Ok(string.trim().to_string()),
             Err(e) => return Err(format!("{e}")),
         },
         Err(e) => return Err(format!("Error when executing command {command}: {e}")),
@@ -51,7 +51,7 @@ pub fn run_with_input_on_stdin(
         .wait_with_output()
         .expect(format!("Getting stdout of {command}").as_str());
     let output_string: String = String::from_utf8(output.stdout).unwrap();
-    return Ok(output_string.trim_end().trim_start().to_string());
+    return Ok(output_string.trim().to_string());
 }
 pub fn encrypt_with_pass(destination: String, input: String) -> Result<(), String> {
     let mut cmd = Command::new("pass");
