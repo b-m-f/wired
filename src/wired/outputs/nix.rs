@@ -9,7 +9,7 @@ pub fn get_colmena_config(name_of_wg_peer: &String, network_name: &String) -> St
           deployment.keys.\"wg-{network_name}.key\" = {{
             keyCommand = [
               \"pass\"
-              \"wireguard/{network_name}/{name_of_wg_peer}.key\"
+              \"wired/{network_name}/{name_of_wg_peer}.key\"
             ];
 
             destDir = \"/etc/wired\";
@@ -21,7 +21,7 @@ pub fn get_colmena_config(name_of_wg_peer: &String, network_name: &String) -> St
           deployment.keys.\"wg-{network_name}.psk\" = {{
             keyCommand = [
               \"pass\"
-              \"wireguard/{network_name}/psk\"
+              \"wired/{network_name}/psk\"
             ];
 
             destDir = \"/etc/wired\";
