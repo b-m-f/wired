@@ -46,7 +46,7 @@ pub fn remove_previous_config_dir(config_dir: &String) -> Result<(), String> {
 
 pub fn create_config_dir(config_dir: &String) -> Result<(), String> {
     if Path::new(config_dir).exists() {
-        return Err("Config directory already exists".to_string());
+        return Err(format!("Config directory {config_dir} already exists"));
     }
     match create_dir_all(&config_dir) {
         Ok(_) => return Ok(()),
