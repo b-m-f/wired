@@ -184,7 +184,6 @@ pub fn generate_client(
           {encryption_config}
           systemd.network.enable = true;
           systemd.network.netdevs.\"10-{name}\"= {{
-              \"10-{name}\" = {{
                 netdevConfig = {{
                   Kind = \"wireguard\";
                   Name = \"{name}\";
