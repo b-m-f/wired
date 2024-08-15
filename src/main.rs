@@ -232,7 +232,7 @@ fn main() {
             let server_name = server.name;
             match command::encrypt_with_pass(
                 format!("wired/{network_name}/{server_name}.key"),
-                network_config.presharedkey.clone(),
+                server.privatekey.clone(),
             ) {
                 Ok(_) => (),
                 Err(e) => {
@@ -258,7 +258,7 @@ fn main() {
             let client_name = client.name;
             match command::encrypt_with_pass(
                 format!("wired/{network_name}/{client_name}.key"),
-                network_config.presharedkey.clone(),
+                client.privatekey.clone(),
             ) {
                 Ok(_) => (),
                 Err(e) => {
