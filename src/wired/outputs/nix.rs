@@ -164,9 +164,9 @@ pub fn generate_client(
                    wireguardPeerConfig = {{
                      PublicKey = \"{publickey}\";
                      AllowedIPs = [\"{ip}\"];
-                     Endpoint = \"{endpoint}:{listenport}\"
+                     Endpoint = \"{endpoint}:{listenport}\";
                      {persistentkeepalive}
-                     PresharedKeyFile=\"{psk_path}\"
+                     PresharedKeyFile=\"{psk_path}\";
                    }};
                 }}"
         );
@@ -192,7 +192,7 @@ pub fn generate_client(
                 }};
                 wireguardConfig = {{
                   #Must be readable by the systemd.network user
-                  PrivateKeyFile = \"{privatekey_path}\"
+                  PrivateKeyFile = \"{privatekey_path}\";
                 }};
                 wireguardPeers = [
                   {peers}
