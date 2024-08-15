@@ -304,7 +304,7 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
             let mut postpone_config_generation_until_all_defined_ips_are_known = false;
 
             // Check that all required fields are set
-            let required = ["ip", "privatekey"];
+            let required = ["ip"];
             for key in required {
                 match client.get(key) {
                     Some(_) => (),
