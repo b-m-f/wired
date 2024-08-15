@@ -47,8 +47,6 @@ fn main() {
         }
     };
 
-    let config_dir = args.config_file.to_string().replace(".toml", "");
-
     let network_config = wired::parser::parse_network(&config).unwrap_or_else(|e| {
         eprintln!("{e}");
         std::process::exit(1);
@@ -63,6 +61,7 @@ fn main() {
         std::process::exit(1);
     });
 
+    let config_dir = network_config.name.clone();
     if args.force {
         let _ = wired::files::remove_previous_config_dir(&config_dir);
     }
