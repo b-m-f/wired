@@ -55,7 +55,7 @@ Confirm that configs have the correct output
                 routes = [
                      {
                        routeConfig = {
-                         Destination = 10.10.10.0/24;
+                         Destination = 10.100.1.0/24;
                        };
                      }
                 ];

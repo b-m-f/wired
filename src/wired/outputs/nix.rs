@@ -135,6 +135,7 @@ pub fn generate_client(
         None => "".to_string(),
     };
     let encryption = client.encryption.clone();
+    let cidr = network.cidrv4;
 
     // create encryption config
     let client_name = client.name.clone();
@@ -210,7 +211,7 @@ pub fn generate_client(
               routes = [
                    {{
                      routeConfig = {{
-                       Destination = 10.10.10.0/24;
+                       Destination = {cidr};
                      }};
                    }}
               ];
