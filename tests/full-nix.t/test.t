@@ -126,7 +126,7 @@ Check that statefile is correct:
   cidrv4 = "10.100.1.0/24"
   
   [servers]
-  [Servers.server]
+  [servers.server]
   ip = "10.100.1.1"
   output = "nix"
   privatekey = "MHYE0gQavBWsRvMNMOoYB/cL3YFoiiWpWAq5PjHMw0c="
@@ -135,11 +135,14 @@ Check that statefile is correct:
   persistentkeepalive = 5
   
   [clients]
-  [Clients.client]
+  [clients.client]
   ip = "10.100.1.1"
   output = "nix"
   dns = "10.10.10.1"
   privatekey = "8Fp1TVFMWY0qYufoGm6qFeJXrtzU3FodpoiCkdJfQ2k="
+
+Check that statefile is the same as input
+  $ cmp full.toml full.statefile
 
 Cleanup
   $ rm -rf full

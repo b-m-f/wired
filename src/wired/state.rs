@@ -11,13 +11,13 @@ pub fn create_statefile(
     let mut server_string = "[servers]\n".to_string();
     for server in servers {
         let server_toml = toml::to_string(server).unwrap();
-        server_string.push_str(format!("[Servers.{}]\n", server.name).as_str());
+        server_string.push_str(format!("[servers.{}]\n", server.name).as_str());
         server_string.push_str(&server_toml);
     }
     let mut client_string = "[clients]\n".to_string();
     for client in clients {
         let client_toml = toml::to_string(client).unwrap();
-        client_string.push_str(format!("[Clients.{}]\n", client.name).as_str());
+        client_string.push_str(format!("[clients.{}]\n", client.name).as_str());
         client_string.push_str(&client_toml);
     }
 
