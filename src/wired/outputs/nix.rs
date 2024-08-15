@@ -211,7 +211,7 @@ pub fn generate_client(
               routes = [
                    {{
                      routeConfig = {{
-                       Destination = {cidr};
+                       Destination = \"{cidr}\";
                      }};
                    }}
               ];
