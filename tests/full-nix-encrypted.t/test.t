@@ -59,7 +59,7 @@ Confirm that configs have the correct output
                   };
                   wireguardConfig = {
                     #Must be readable by the systemd.network user
-                    PrivateKeyFile = "/etc/wired/wg-client.key";
+                    PrivateKeyFile = "/etc/wired/wg-full.key";
                   };
                   wireguardPeers = [
                     {
@@ -139,7 +139,7 @@ Confirm that configs have the correct output
             MTUBytes = "1500";
           };
           wireguardConfig = {
-            PrivateKeyFile = "/etc/wired/wg-server.key";
+            PrivateKeyFile = "/etc/wired/wg-full.key";
             ListenPort = 20202;
           };
           wireguardPeers = [

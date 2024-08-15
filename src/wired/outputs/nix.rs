@@ -33,8 +33,8 @@ pub fn get_colmena_config(name_of_wg_peer: &String, network_name: &String) -> St
             "
     )
 }
-pub fn get_encryption_privatekey_path(name: &String) -> String {
-    format!("/etc/wired/wg-{name}.key")
+pub fn get_encryption_privatekey_path(network_name: &String) -> String {
+    format!("/etc/wired/wg-{network_name}.key")
 }
 pub fn get_encryption_psk_path(network_name: &String) -> String {
     format!("/etc/wired/wg-{network_name}.psk")
@@ -57,7 +57,7 @@ pub fn generate_server(
     let mut privatekey_path = format!("Use the provided {server_name}.key file");
     let mut psk_path = format!("Use the provided {name}.psk file");
     if encryption == "colmena:pass" {
-        privatekey_path = get_encryption_privatekey_path(&server_name);
+        privatekey_path = get_encryption_privatekey_path(&name);
         psk_path = get_encryption_psk_path(&name);
         encryption_config = get_colmena_config(&server_name, &name);
     }
@@ -142,7 +142,7 @@ pub fn generate_client(
     let mut privatekey_path = format!("Use the provided {client_name}.key file");
     let mut psk_path = format!("Use the provided {name}.psk file");
     if encryption == "colmena:pass" {
-        privatekey_path = get_encryption_privatekey_path(&client_name);
+        privatekey_path = get_encryption_privatekey_path(&name);
         psk_path = get_encryption_psk_path(&name);
         encryption_config = get_colmena_config(&client_name, &name);
     }
