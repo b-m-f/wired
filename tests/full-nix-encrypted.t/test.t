@@ -73,14 +73,13 @@ Confirm that configs have the correct output
                   }
                   ];
                 };
-              };
           systemd.network.networks.full= {
                 matchConfig.Name = "full";
                 address = [
                   "10.100.1.1/32"
                 ];
                 DHCP = "no";
-                dns = "dns = "10.10.10.1"";
+                dns = "10.10.10.1";
                 networkConfig = {
                   IPv6AcceptRA = false;
                 };

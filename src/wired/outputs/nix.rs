@@ -131,7 +131,7 @@ pub fn generate_client(
     let name = network.name.clone();
     let ip = client.ip;
     let dns = match client.dns.clone() {
-        Some(dns) => format!("dns = \"{}\"", dns),
+        Some(dns) => format!("dns = \"{}\";", dns),
         None => "".to_string(),
     };
     let encryption = client.encryption.clone();
@@ -203,7 +203,7 @@ pub fn generate_client(
                 \"{ip}/32\"
               ];
               DHCP = \"no\";
-              dns = \"{dns}\";
+              {dns}
               networkConfig = {{
                 IPv6AcceptRA = false;
               }};
