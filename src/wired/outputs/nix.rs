@@ -2,6 +2,44 @@ use crate::wired::clients::ClientConfig;
 use crate::wired::network::NetworkConfig;
 use crate::wired::servers::ServerConfig;
 
+pub fn get_colmena_config(network_name: &String) -> String {
+    format!(
+        "
+          systemd.tmpfiles.rules = [ \"d /etc/wired 0750 root systemd-network\" ];
+          deployment.keys.\"wg-{network_name}.key\" = {{
+            keyCommand = [
+              \"pass\"
+              \"wireguard/{network_name}/key\"
+            ];
+
+            destDir = \"/etc/wired\";
+            group = \"systemd-network\";
+            permissions = \"0440\";
+
+            uploadAt = \"pre-activation\";
+          }};
+          deployment.keys.\"wg-{network_name}.psk\" = {{
+            keyCommand = [
+              \"pass\"
+              \"wireguard/{network_name}/psk\"
+            ];
+
+            destDir = \"/etc/wired\";
+            group = \"systemd-network\";
+            permissions = \"0440\";
+
+            uploadAt = \"pre-activation\";
+          }};
+            "
+    )
+}
+pub fn get_encryption_privatekey_path(name: &String) -> String {
+    format!("/etc/wired/wg-{name}.key")
+}
+pub fn get_encryption_psk_path(network_name: &String) -> String {
+    format!("/etc/wired/wg-{network_name}.psk")
+}
+
 pub fn generate_server(
     server: &ServerConfig,
     clients: &Vec<ClientConfig>,
@@ -11,7 +49,20 @@ pub fn generate_server(
     let name = network.name.clone();
     let ip = server.ip;
     let port = server.listenport;
+    let encryption = server.encryption.clone();
+    let server_name = server.name.clone();
 
+    // create encryption config
+    let mut encryption_config = String::new();
+    let mut privatekey_path = format!("Use the provided {server_name}.key file");
+    let mut psk_path = format!("Use the provided {name}.psk file");
+    if encryption == "colmena:pass" {
+        privatekey_path = get_encryption_privatekey_path(&server_name);
+        psk_path = get_encryption_psk_path(&name);
+        encryption_config = get_colmena_config(&name);
+    }
+
+    // create peer section
     let mut peers: Vec<String> = Vec::new();
 
     for client in clients {
@@ -22,7 +73,7 @@ pub fn generate_server(
           wireguardPeerConfig = {{
             PublicKey = \"{publickey}\";
             AllowedIPs =[\"{ip}\"];
-            PresharedKeyFile=\"UPDATE_THIS_VIA_YOUR_SECRET_MANAGER.\";
+            PresharedKeyFile=\"{psk_path}\";
           }};
         }}"
         );
@@ -30,7 +81,6 @@ pub fn generate_server(
     }
 
     let peers: String = peers.into_iter().collect();
-    // TODO: create peers
 
     return format!(
         "
@@ -40,6 +90,7 @@ pub fn generate_server(
   lib,
   ...
 }}: {{
+  {encryption_config}
   networking.firewall.allowedUDPPorts = [20202];
   networking.useNetworkd = true;
   systemd.network.enable = true;
@@ -50,7 +101,7 @@ pub fn generate_server(
           MTUBytes = \"1500\";
         }};
         wireguardConfig = {{
-          PrivateKeyFile = \"UPDATE_THIS_VIA_YOUR_SECRET_MANAGER.\";
+          PrivateKeyFile = \"{privatekey_path}\";
           ListenPort = {port};
         }};
         wireguardPeers = [
@@ -78,14 +129,26 @@ pub fn generate_client(
     servers: &Vec<ServerConfig>,
     network: &NetworkConfig,
 ) -> String {
-    // TODO: Create peer config
-    // TODO: make shareable with ServerConfig
     let name = network.name.clone();
     let ip = client.ip;
     let dns = match client.dns.clone() {
         Some(dns) => format!("dns = \"{}\"", dns),
         None => "".to_string(),
     };
+    let encryption = client.encryption.clone();
+
+    // create encryption config
+    let client_name = client.name.clone();
+    let mut encryption_config = String::new();
+    let mut privatekey_path = format!("Use the provided {client_name}.key file");
+    let mut psk_path = format!("Use the provided {name}.psk file");
+    if encryption == "colmena:pass" {
+        privatekey_path = get_encryption_privatekey_path(&client_name);
+        psk_path = get_encryption_psk_path(&name);
+        encryption_config = get_colmena_config(&name);
+    }
+
+    // generate peer section
     let mut peers: Vec<String> = Vec::new();
 
     for server in servers {
@@ -104,7 +167,7 @@ pub fn generate_client(
                      AllowedIPs = [\"{ip}\"];
                      Endpoint = \"{endpoint}:{listenport}\"
                      {persistentkeepalive}
-                     PresharedKeyFile=\"UPDATE_THIS_VIA_YOUR_SECRET_MANAGER.\"
+                     PresharedKeyFile=\"{psk_path}\"
                    }};
                 }}"
         );
@@ -112,7 +175,6 @@ pub fn generate_client(
     }
     let peers: String = peers.into_iter().collect();
 
-    // TODO: add integration of secret manager
     return format!(
         "{{
           config,
@@ -120,6 +182,7 @@ pub fn generate_client(
           lib,
           ...
         }}: {{
+          {encryption_config}
           systemd.network.enable = true;
           systemd.network.netdevs.\"10-{name}\"= {{
               \"10-{name}\" = {{
@@ -130,7 +193,7 @@ pub fn generate_client(
                 }};
                 wireguardConfig = {{
                   #Must be readable by the systemd.network user
-                  PrivateKeyFile = \"UPDATE_THIS_VIA_YOUR_SECRET_MANAGER.\"
+                  PrivateKeyFile = \"{privatekey_path}\"
                 }};
                 wireguardPeers = [
                   {peers}

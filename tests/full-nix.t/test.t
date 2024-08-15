@@ -18,6 +18,7 @@ Confirm that configs have the correct output
             lib,
             ...
           }: {
+            
             systemd.network.enable = true;
             systemd.network.netdevs."10-full"= {
                 "10-full" = {
@@ -28,7 +29,7 @@ Confirm that configs have the correct output
                   };
                   wireguardConfig = {
                     #Must be readable by the systemd.network user
-                    PrivateKeyFile = "UPDATE_THIS_VIA_YOUR_SECRET_MANAGER."
+                    PrivateKeyFile = "Use the provided client.key file"
                   };
                   wireguardPeers = [
                     {
@@ -37,7 +38,7 @@ Confirm that configs have the correct output
                        AllowedIPs = ["10.100.1.1"];
                        Endpoint = "1.1.1.1:20202"
                        PersistentKeepalive = 5;
-                       PresharedKeyFile="UPDATE_THIS_VIA_YOUR_SECRET_MANAGER."
+                       PresharedKeyFile="Use the provided full.psk file"
                      };
                   }
                   ];
@@ -72,6 +73,7 @@ Confirm that configs have the correct output
     lib,
     ...
   }: {
+    
     networking.firewall.allowedUDPPorts = [20202];
     networking.useNetworkd = true;
     systemd.network.enable = true;
@@ -82,7 +84,7 @@ Confirm that configs have the correct output
             MTUBytes = "1500";
           };
           wireguardConfig = {
-            PrivateKeyFile = "UPDATE_THIS_VIA_YOUR_SECRET_MANAGER.";
+            PrivateKeyFile = "Use the provided server.key file";
             ListenPort = 20202;
           };
           wireguardPeers = [
@@ -90,7 +92,7 @@ Confirm that configs have the correct output
             wireguardPeerConfig = {
               PublicKey = "92hH4QGMnvO0bnNMt8Bq3u17Sp0B5zPKWp7firxesGM=";
               AllowedIPs =["10.100.1.1"];
-              PresharedKeyFile="UPDATE_THIS_VIA_YOUR_SECRET_MANAGER.";
+              PresharedKeyFile="Use the provided full.psk file";
             };
           }
           ];
