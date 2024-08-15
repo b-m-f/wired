@@ -3,7 +3,7 @@ Make sure all config files get created
   $ wired --config-file full.toml
 
 Check that expected files were created
-  $ ls full
+  $ ls wired/full
   client.key
   client.nix
   full.psk
@@ -22,5 +22,5 @@ Works with -f
   $ wired -f --config-file  full.toml
 
 Cleanup
-  $ rm -rf full
+  $ rm -rf wired
   $ rm *.statefile

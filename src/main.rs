@@ -187,7 +187,8 @@ fn main() {
                 }
             }
             "qr" => {
-                let path_string = format!("./{}/{}.png", network_config.name, client_config.name);
+                let path_string =
+                    format!("./wired/{}/{}.png", network_config.name, client_config.name);
                 let finished_config =
                     conf::generate_client(&client_config, &server_configs, &network_config);
                 qr::create_qr(&path_string, &finished_config);
@@ -201,7 +202,7 @@ fn main() {
     let statefile_content =
         wired::state::create_statefile(&network_config, &server_configs, &client_configs);
     let path_string = format!("./{}.statefile", network_config.name);
-    match wired::files::write_config(&path_string, &statefile_content) {
+    match wired::files::write_statefile(&path_string, &statefile_content) {
         Ok(_) => (),
         Err(e) => {
             eprintln!("{e}");

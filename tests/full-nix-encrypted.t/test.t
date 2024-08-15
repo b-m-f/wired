@@ -8,7 +8,7 @@ Make sure all config files get created
   Successfully encrypted all client secrets with pass
 
 Check that expected files were created
-  $ ls full
+  $ ls wired/full
   client.key
   client.nix
   full.psk
@@ -16,7 +16,7 @@ Check that expected files were created
   server.nix
 
 Confirm that configs have the correct output
-  $ cat full/client.nix
+  $ cat wired/full/client.nix
   {
             config,
             pkgs,
@@ -96,7 +96,7 @@ Confirm that configs have the correct output
           } (no-eol)
 
 
-  $ cat full/server.nix
+  $ cat wired/full/server.nix
   
   {
     config,
@@ -207,6 +207,6 @@ Check that secrets where created
   server.key.gpg
 
 Cleanup
-  $ rm -rf full
+  $ rm -rf wired
   $ rm *.statefile
   $ rm -rf secrets

@@ -8,7 +8,30 @@ pub fn read_config(config: &String) -> Result<String, std::io::Error> {
 }
 
 pub fn write_config(path: &String, content: &String) -> Result<(), String> {
-    let path = Path::new(&path);
+    let prefixed_path = Path::new("wired").join(path);
+    let mut file = match File::create(prefixed_path.clone()) {
+        Ok(file) => file,
+        Err(e) => {
+            return Err(format!(
+                "Error writing config file {}: {}",
+                prefixed_path.display(),
+                e
+            ))
+        }
+    };
+    match file.write_all(content.as_bytes()) {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            return Err(format!(
+                "Error writing config file {}: {}",
+                prefixed_path.display(),
+                e
+            ))
+        }
+    }
+}
+pub fn write_statefile(path: &String, content: &String) -> Result<(), String> {
+    let path = Path::new(path);
     let mut file = match File::create(path) {
         Ok(file) => file,
         Err(e) => {
@@ -32,9 +55,9 @@ pub fn write_config(path: &String, content: &String) -> Result<(), String> {
 }
 
 pub fn remove_previous_config_dir(config_dir: &String) -> Result<(), String> {
-    if Path::new(config_dir).exists() {
+    if Path::new(&format!("wired/{config_dir}")).exists() {
         // delete old configs before regenerating as they have been parsed at this point
-        match std::fs::remove_dir_all(&config_dir) {
+        match std::fs::remove_dir_all(&format!("wired/{config_dir}")) {
             Ok(_) => return Ok(()),
             Err(e) => {
                 return Err(format!("Could not remove previous config output directory. Please remove manually and rerun the config generation. Error: {e}" ));
@@ -45,10 +68,10 @@ pub fn remove_previous_config_dir(config_dir: &String) -> Result<(), String> {
 }
 
 pub fn create_config_dir(config_dir: &String) -> Result<(), String> {
-    if Path::new(config_dir).exists() {
+    if Path::new(&format!("wired/{config_dir}")).exists() {
         return Err(format!("Config directory {config_dir} already exists"));
     }
-    match create_dir_all(&config_dir) {
+    match create_dir_all(&format!("wired/{config_dir}")) {
         Ok(_) => return Ok(()),
         Err(e) => return Err(format!("{}", e)),
     };

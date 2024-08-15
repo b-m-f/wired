@@ -4,12 +4,12 @@ Create from full config:
   $ wired --config-file full.toml
 
 Check that all files were created
-  $ ls full
+  $ ls wired/full
   client.conf
   server.conf
 
 Make sure that server config is correct
-  $ cat full/server.conf
+  $ cat wired/full/server.conf
   [Interface]
   Address = 10.100.1.1
   ListenPort = 20202
@@ -25,7 +25,7 @@ Make sure that server config is correct
   
 
 Make sure that client config is correct
-  $ cat full/client.conf
+  $ cat wired/full/client.conf
   [Interface]
   Address = 10.100.1.1
   PrivateKey = 8Fp1TVFMWY0qYufoGm6qFeJXrtzU3FodpoiCkdJfQ2k=
@@ -40,5 +40,5 @@ Make sure that client config is correct
   
 
 Cleanup
-  $ rm -rf full
+  $ rm -rf wired
   $ rm full.statefile

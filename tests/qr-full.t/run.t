@@ -3,10 +3,10 @@ Create from full config:
   $ wired --config-file full.toml
 
 Check that all files were created
-  $ ls full
+  $ ls wired/full
   client.png
   server.conf
 
 Cleanup
-  $ rm -rf full
+  $ rm -rf wired
   $ rm full.statefile
