@@ -2,14 +2,14 @@ use crate::wired::clients::ClientConfig;
 use crate::wired::network::NetworkConfig;
 use crate::wired::servers::ServerConfig;
 
-pub fn get_colmena_config(network_name: &String) -> String {
+pub fn get_colmena_config(name_of_wg_peer: &String, network_name: &String) -> String {
     format!(
         "
           systemd.tmpfiles.rules = [ \"d /etc/wired 0750 root systemd-network\" ];
           deployment.keys.\"wg-{network_name}.key\" = {{
             keyCommand = [
               \"pass\"
-              \"wireguard/{network_name}/key\"
+              \"wireguard/{network_name}/{name_of_wg_peer}.key\"
             ];
 
             destDir = \"/etc/wired\";
@@ -59,7 +59,7 @@ pub fn generate_server(
     if encryption == "colmena:pass" {
         privatekey_path = get_encryption_privatekey_path(&server_name);
         psk_path = get_encryption_psk_path(&name);
-        encryption_config = get_colmena_config(&name);
+        encryption_config = get_colmena_config(&server_name, &name);
     }
 
     // create peer section
@@ -144,7 +144,7 @@ pub fn generate_client(
     if encryption == "colmena:pass" {
         privatekey_path = get_encryption_privatekey_path(&client_name);
         psk_path = get_encryption_psk_path(&name);
-        encryption_config = get_colmena_config(&name);
+        encryption_config = get_colmena_config(&client_name, &name);
     }
 
     // generate peer section

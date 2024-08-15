@@ -1,6 +1,11 @@
 Make sure all config files get created
   $ cd $TESTDIR
+  $ export PASSWORD_STORE_DIR=$TESTDIR/secrets
+  $ pass init D607F9E45D7E32B311E9D9321E185A89832FCE97 >/dev/null
+ 
   $ wired --config-file full.toml
+  Successfully encrypted all server secrets with pass
+  Successfully encrypted all client secrets with pass
 
 Check that expected files were created
   $ ls full
@@ -23,7 +28,7 @@ Confirm that configs have the correct output
             deployment.keys."wg-full.key" = {
               keyCommand = [
                 "pass"
-                "wireguard/full/key"
+                "wireguard/full/client.key"
               ];
   
               destDir = "/etc/wired";
@@ -104,7 +109,7 @@ Confirm that configs have the correct output
             deployment.keys."wg-full.key" = {
               keyCommand = [
                 "pass"
-                "wireguard/full/key"
+                "wireguard/full/server.key"
               ];
   
               destDir = "/etc/wired";
@@ -193,6 +198,15 @@ Check that statefile is the same as input
   $ cmp full.toml full.statefile
   $ diff full.toml full.statefile
 
+Check that secrets where created
+  $ ls secrets/wired
+  full
+  $ ls secrets/wired/full
+  client.key.gpg
+  full.psk.gpg
+  server.key.gpg
+
 Cleanup
   $ rm -rf full
   $ rm *.statefile
+  $ rm -rf secrets

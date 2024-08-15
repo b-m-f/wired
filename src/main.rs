@@ -2,8 +2,10 @@ mod wired;
 
 use clap::Parser;
 use wired::{
+    command, network,
     outputs::{conf, nix, qr},
     parser::Config,
+    servers,
 };
 
 #[derive(Parser, Debug)]
@@ -196,7 +198,6 @@ fn main() {
             }
         }
     }
-    // TODO: generate statefile
     let statefile_content =
         wired::state::create_statefile(&network_config, &server_configs, &client_configs);
     let path_string = format!("./{}.statefile", network_config.name);
@@ -207,5 +208,64 @@ fn main() {
             std::process::exit(1);
         }
     }
-    // TODO: add encryption via pass
+    // Auto encrypt secrets for nix configs if colmena:pass is choosen
+    // Check README for this, can fail easily - that is why its last
+    // Let use know they can do it manually using the written files
+    // TODO: Document proper setup and not to check in secrets
+    //
+    // FIXME: maybe improve this if needed
+    // Just recreate PSK each time for simplicity
+    let network_name = network_config.name.clone();
+    for server in server_configs {
+        if server.encryption == "colmena:pass" {
+            match command::encrypt_with_pass(
+                format!("wired/{network_name}/{network_name}.psk"),
+                network_config.presharedkey.clone(),
+            ) {
+                Ok(_) => (),
+                Err(e) => {
+                    eprintln!("Error when trying to auto encrypt secrets with pass: {e}");
+                    std::process::exit(1);
+                }
+            };
+            let server_name = server.name;
+            match command::encrypt_with_pass(
+                format!("wired/{network_name}/{server_name}.key"),
+                network_config.presharedkey.clone(),
+            ) {
+                Ok(_) => (),
+                Err(e) => {
+                    eprintln!("Error when trying to auto encrypt secrets with pass: {e}");
+                    std::process::exit(1);
+                }
+            };
+            eprintln!("Successfully encrypted all server secrets with pass");
+        }
+    }
+    for client in client_configs {
+        if client.encryption == "colmena:pass" {
+            match command::encrypt_with_pass(
+                format!("wired/{network_name}/{network_name}.psk"),
+                network_config.presharedkey.clone(),
+            ) {
+                Ok(_) => (),
+                Err(e) => {
+                    eprintln!("Error when trying to auto encrypt secrets with pass: {e}");
+                    std::process::exit(1);
+                }
+            };
+            let client_name = client.name;
+            match command::encrypt_with_pass(
+                format!("wired/{network_name}/{client_name}.key"),
+                network_config.presharedkey.clone(),
+            ) {
+                Ok(_) => (),
+                Err(e) => {
+                    eprintln!("Error when trying to auto encrypt secrets with pass: {e}");
+                    std::process::exit(1);
+                }
+            };
+            eprintln!("Successfully encrypted all client secrets with pass");
+        }
+    }
 }

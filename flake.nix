@@ -25,6 +25,7 @@
             python312Packages.cram
             just
             wireguard-tools
+            pass
           ];
 
           shellHook = ''
