@@ -91,7 +91,7 @@ pub fn generate_server(
   ...
 }}: {{
   {encryption_config}
-  networking.firewall.allowedUDPPorts = [20202];
+  networking.firewall.allowedUDPPorts = [{port}];
   networking.useNetworkd = true;
   systemd.network.enable = true;
   systemd.network.netdevs.\"50-{name}\" = {{
