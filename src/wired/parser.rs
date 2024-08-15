@@ -75,13 +75,10 @@ pub fn parse_network(config: &Config) -> Result<NetworkConfig, String> {
             _ => return Err(format!("Unkown field {key} specified for network")),
         }
     }
-    // TODO: test parsing errors
     return Ok(NetworkConfig {
         cidrv4,
-        // TODO: get name from config file
         name,
-        // TODO: make sure this is caught in parsing
-        presharedkey: psk, // TODO: Parse and set web as default
+        presharedkey: psk,
         // TODO: Make own doc file for network types
         r#type: network_type,
     });
@@ -90,7 +87,6 @@ pub fn parse_network(config: &Config) -> Result<NetworkConfig, String> {
 pub fn parse_servers(config: &Config) -> Result<Vec<ServerConfig>, String> {
     let servers = &config.servers;
     let network = parse_network(&config)?;
-    // TODO: test parsing error
     let mut configs: Vec<ServerConfig> = Vec::new();
     if servers.len() == 0 {
         return Err("No servers configured".to_string());
@@ -116,6 +112,7 @@ pub fn parse_servers(config: &Config) -> Result<Vec<ServerConfig>, String> {
             let mut pka: Option<u16> = None;
             let mut listenport: u16 = 51820;
             let mut output: String = "conf".to_string();
+            let mut encryption: String = "none".to_string();
             // Check that all required fields are set
             let required = ["ip", "listenport", "endpoint"];
             for key in required {
@@ -123,6 +120,17 @@ pub fn parse_servers(config: &Config) -> Result<Vec<ServerConfig>, String> {
                     Some(_) => (),
                     None => return Err(format!("Server {name} is missing required field '{key}'")),
                 }
+            }
+            match server.get("output") {
+                Some(value) => {
+                    if value.to_string() == "nix".to_string() {
+                        match server.get("encryption") {
+                    Some(_) => (),
+                    None => return Err(format!("Client {name} has no encryption defined. This is required for nix output.")),
+                }
+                    }
+                }
+                None => (),
             }
             // parse config
             for (field_key, field_value) in table.iter() {
@@ -216,6 +224,17 @@ pub fn parse_servers(config: &Config) -> Result<Vec<ServerConfig>, String> {
                         },
                         None => "conf".to_string(),
                     },
+                    "encryption" => encryption = match server.get(field_key){
+                        Some(enc) => {
+                            let enc_checked = match enc.to_string().replace("\"", "").as_str(){
+                                "none" => enc.to_string().replace("\"", ""),
+                                "colmena:pass" =>enc.to_string().replace("\"", ""),
+                                _ => return Err(format!("Unkown output '{output}' for server {name}"))
+                            };
+                            enc_checked
+                        },
+                        None => "conf".to_string(),
+                    },
                     _ => return Err(format!("Unkown entry '{}' for server {name}", field_key)),
                 }
             }
@@ -237,6 +256,7 @@ pub fn parse_servers(config: &Config) -> Result<Vec<ServerConfig>, String> {
                 name: name.to_string(),
                 ip,
                 persistentkeepalive: pka,
+                encryption,
             };
             configs.push(server_config);
         } else {
@@ -280,6 +300,7 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
             let mut ip: Ipv4Addr = Ipv4Addr::new(0, 0, 0, 0);
             let mut dns: Option<String> = None;
             let mut output: String = "conf".to_string();
+            let mut encryption: String = "none".to_string();
             let mut postpone_config_generation_until_all_defined_ips_are_known = false;
 
             // Check that all required fields are set
@@ -289,6 +310,17 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
                     Some(_) => (),
                     None => return Err(format!("Client {name} is missing required field '{key}'")),
                 }
+            }
+            match client.get("output") {
+                Some(value) => {
+                    if value.to_string() == "nix".to_string() {
+                        match client.get("encryption") {
+                    Some(_) => (),
+                    None => return Err(format!("Client {name} has no encryption defined. This is required for nix output.")),
+                }
+                    }
+                }
+                None => (),
             }
 
             // parse config
@@ -351,6 +383,23 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
                             None => "conf".to_string(),
                         }
                     }
+                    "encryption" => {
+                        encryption = match client.get(field_key) {
+                            Some(enc) => {
+                                let enc_checked = match enc.to_string().replace("\"", "").as_str() {
+                                    "none" => enc.to_string().replace("\"", ""),
+                                    "colmena:pass" => enc.to_string().replace("\"", ""),
+                                    _ => {
+                                        return Err(format!(
+                                            "Unkown output '{output}' for server {name}"
+                                        ))
+                                    }
+                                };
+                                enc_checked
+                            }
+                            None => "conf".to_string(),
+                        }
+                    }
                     _ => return Err(format!("Unkown entry '{}' for client {name}", field_key)),
                 }
             }
@@ -369,6 +418,7 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
                 privatekey,
                 publickey,
                 output,
+                encryption,
             };
             if postpone_config_generation_until_all_defined_ips_are_known {
                 configs_without_ip.push(client_config);
@@ -395,6 +445,7 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
                             dns: client.dns.clone(),
                             privatekey: client.privatekey.clone(),
                             name: client.name.clone(),
+                            encryption: client.encryption.clone(),
                         });
                     }
                     None => {

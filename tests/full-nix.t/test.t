@@ -18,9 +18,8 @@ Confirm that configs have the correct output
             lib,
             ...
           }: {
-            systemd.network = {
-              enable = true;
-              netdevs = {
+            systemd.network.enable = true;
+            systemd.network.netdevs."10-full"= {
                 "10-full" = {
                   netdevConfig = {
                     Kind = "wireguard";
@@ -44,7 +43,7 @@ Confirm that configs have the correct output
                   ];
                 };
               };
-              networks.full= {
+          systemd.network.networks.full= {
                 matchConfig.Name = "full";
                 address = [
                   "10.100.1.1/32"
@@ -60,9 +59,8 @@ Confirm that configs have the correct output
                          Destination = 10.10.10.0/24;
                        };
                      }
-                    ];
-              };
-            };
+                ];
+          };
           } (no-eol)
 
 
@@ -76,13 +74,11 @@ Confirm that configs have the correct output
   }: {
     networking.firewall.allowedUDPPorts = [20202];
     networking.useNetworkd = true;
-    systemd.network = {
-      enable = true;
-      netdevs = {
-        "50-server" = {
+    systemd.network.enable = true;
+    systemd.network.netdevs."50-full" = {
           netdevConfig = {
             Kind = "wireguard";
-            Name = "server";
+            Name = "full";
             MTUBytes = "1500";
           };
           wireguardConfig = {
@@ -100,21 +96,18 @@ Confirm that configs have the correct output
           ];
         };
       };
-      networks.server= {
-        matchConfig.Name = "server";
-        address = ["10.100.1.1"];
-        routes = [
-             {
-               routeConfig = {
-                 Destination = "10.100.1.0/24";
-               };
-             }
-            ];
-           };
+    systemd.network.networks.full= {
+      matchConfig.Name = "full";
+      address = ["10.100.1.1/32"];
+      routes = [
+         {
+            routeConfig = {
+              Destination = "10.100.1.0/24";
+            };
+         }
+      ];
     };
   }
-  
-  
                (no-eol)
 
 Check that statefile is correct:
@@ -129,6 +122,7 @@ Check that statefile is correct:
   [servers.server]
   ip = "10.100.1.1"
   output = "nix"
+  encryption = "none"
   privatekey = "MHYE0gQavBWsRvMNMOoYB/cL3YFoiiWpWAq5PjHMw0c="
   listenport = 20202
   endpoint = "1.1.1.1"
@@ -138,11 +132,13 @@ Check that statefile is correct:
   [clients.client]
   ip = "10.100.1.1"
   output = "nix"
+  encryption = "none"
   dns = "10.10.10.1"
   privatekey = "8Fp1TVFMWY0qYufoGm6qFeJXrtzU3FodpoiCkdJfQ2k="
 
 Check that statefile is the same as input
   $ cmp full.toml full.statefile
+  $ diff full.toml full.statefile
 
 Cleanup
   $ rm -rf full

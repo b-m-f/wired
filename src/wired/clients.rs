@@ -9,15 +9,17 @@ pub struct ClientConfig {
     pub dns: Option<String>,
     pub privatekey: String,
     pub name: String,
+    pub encryption: String,
 }
 impl Serialize for ClientConfig {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
-        let mut client = serializer.serialize_struct("Client", 4)?;
+        let mut client = serializer.serialize_struct("Client", 5)?;
         client.serialize_field("ip", &self.ip)?;
         client.serialize_field("output", &self.output)?;
+        client.serialize_field("encryption", &self.encryption)?;
         client.serialize_field("dns", &self.dns)?;
         client.serialize_field("privatekey", &self.privatekey)?;
         client.end()
