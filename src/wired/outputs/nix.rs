@@ -62,7 +62,7 @@ pub fn generate_server(
     }};
     networks.{name}= {{
       matchConfig.Name = \"{name}\";
-      address = [\"{ip}\"];
+      address = [\"{ip}/32\"];
       routes = [
            {{
              routeConfig = {{
