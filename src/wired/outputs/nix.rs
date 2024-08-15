@@ -8,7 +8,7 @@ pub fn generate_server(
     network: &NetworkConfig,
 ) -> String {
     let cidr = network.cidrv4;
-    let name = server.name.clone();
+    let name = network.name.clone();
     let ip = server.ip;
     let port = server.listenport;
 
@@ -42,10 +42,8 @@ pub fn generate_server(
 }}: {{
   networking.firewall.allowedUDPPorts = [20202];
   networking.useNetworkd = true;
-  systemd.network = {{
-    enable = true;
-    netdevs = {{
-      \"50-{name}\" = {{
+  systemd.network.enable = true;
+  systemd.network.netdevs.\"50-{name}\" = {{
         netdevConfig = {{
           Kind = \"wireguard\";
           Name = \"{name}\";
@@ -60,21 +58,18 @@ pub fn generate_server(
         ];
       }};
     }};
-    networks.{name}= {{
-      matchConfig.Name = \"{name}\";
-      address = [\"{ip}/32\"];
-      routes = [
-           {{
-             routeConfig = {{
-               Destination = \"{cidr}\";
-             }};
-           }}
-          ];
-         }};
+  systemd.network.networks.{name}= {{
+    matchConfig.Name = \"{name}\";
+    address = [\"{ip}/32\"];
+    routes = [
+       {{
+          routeConfig = {{
+            Destination = \"{cidr}\";
+          }};
+       }}
+    ];
   }};
 }}
-
-
             "
     );
 }
@@ -125,9 +120,8 @@ pub fn generate_client(
           lib,
           ...
         }}: {{
-          systemd.network = {{
-            enable = true;
-            netdevs = {{
+          systemd.network.enable = true;
+          systemd.network.netdevs.\"10-{name}\"= {{
               \"10-{name}\" = {{
                 netdevConfig = {{
                   Kind = \"wireguard\";
@@ -143,7 +137,7 @@ pub fn generate_client(
                 ];
               }};
             }};
-            networks.{name}= {{
+        systemd.network.networks.{name}= {{
               matchConfig.Name = \"{name}\";
               address = [
                 \"{ip}/32\"
@@ -159,9 +153,8 @@ pub fn generate_client(
                        Destination = 10.10.10.0/24;
                      }};
                    }}
-                  ];
-            }};
-          }};
+              ];
+        }};
         }}",
     );
 }
