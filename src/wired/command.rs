@@ -53,10 +53,11 @@ pub fn run_with_input_on_stdin(
     let output_string: String = String::from_utf8(output.stdout).unwrap();
     return Ok(output_string.trim_end().to_string());
 }
-pub fn encrypt_with_pass(destination: String, input: String) -> Result<String, String> {
+pub fn encrypt_with_pass(destination: String, input: String) -> Result<(), String> {
     let mut cmd = Command::new("pass");
     cmd.stdin(Stdio::piped());
     cmd.stdout(Stdio::null());
+    cmd.stderr(Stdio::null());
     for arg in ["insert", "-e", &destination] {
         cmd.arg(arg);
     }
@@ -76,9 +77,7 @@ pub fn encrypt_with_pass(destination: String, input: String) -> Result<String, S
             .expect("Passing data to pass");
     });
 
-    let output = cmd
-        .wait_with_output()
-        .expect("Getting publickey for privatekey");
-    let output_string: String = String::from_utf8(output.stdout).unwrap();
-    return Ok(output_string.trim_end().to_string());
+    cmd.wait().expect("Waiting for pass to finish");
+
+    return Ok(());
 }
