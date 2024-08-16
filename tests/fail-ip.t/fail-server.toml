@@ -1,5 +1,5 @@
 [network]
-name = "test-fail-ip-server"
+name = "fail-server"
 cidrv4 = "10.100.1.0/24"
 type = "web"
 presharedkey = "qPQ/T+4dHydnvk8cZXh+zBpZqOmLvaoxbC0W6c2gwtg="
