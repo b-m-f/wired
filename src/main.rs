@@ -4,10 +4,8 @@ use clap::Parser;
 use wired::{
     command,
     crypto::{get_preshared_key, get_private_key},
-    network,
     outputs::{conf, nix, qr},
     parser::Config,
-    servers,
 };
 
 #[derive(Parser, Debug)]
