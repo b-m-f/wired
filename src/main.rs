@@ -2,7 +2,9 @@ mod wired;
 
 use clap::Parser;
 use wired::{
-    command, network,
+    command,
+    crypto::{get_preshared_key, get_private_key},
+    network,
     outputs::{conf, nix, qr},
     parser::Config,
     servers,
@@ -19,8 +21,8 @@ struct Args {
     config_file: String,
 
     /// Rotate all private keys
-    #[arg(short, long, default_value_t = false)]
-    rotate_keys: bool,
+    #[arg(short = 'r', long, default_value_t = false)]
+    rekey: bool,
 
     /// Remove existing configs
     #[arg(short = 'f', long, default_value_t = false)]
@@ -49,19 +51,48 @@ fn main() {
         }
     };
 
-    let network_config = wired::parser::parse_network(&config).unwrap_or_else(|e| {
+    let mut network_config = wired::parser::parse_network(&config).unwrap_or_else(|e| {
         eprintln!("{e}");
         std::process::exit(1);
     });
 
-    let server_configs = wired::parser::parse_servers(&config).unwrap_or_else(|e| {
+    let mut server_configs = wired::parser::parse_servers(&config).unwrap_or_else(|e| {
         eprintln!("{e}");
         std::process::exit(1);
     });
-    let client_configs = wired::parser::parse_clients(&config).unwrap_or_else(|e| {
+    let mut client_configs = wired::parser::parse_clients(&config).unwrap_or_else(|e| {
         eprintln!("{e}");
         std::process::exit(1);
     });
+
+    // Rekeying
+    if args.rekey {
+        network_config.presharedkey = match get_preshared_key() {
+            Err(e) => {
+                eprintln!("Error when trying to create new presharedkey for network: {e}");
+                std::process::exit(1);
+            }
+            Ok(key) => key,
+        };
+        for server in server_configs.iter_mut() {
+            server.privatekey = match get_private_key() {
+                Err(e) => {
+                    eprintln!("Error when trying to create new privatekey for server: {e}");
+                    std::process::exit(1);
+                }
+                Ok(key) => key,
+            };
+        }
+        for client in client_configs.iter_mut() {
+            client.privatekey = match get_private_key() {
+                Err(e) => {
+                    eprintln!("Error when trying to create new privatekey for client: {e}");
+                    std::process::exit(1);
+                }
+                Ok(key) => key,
+            };
+        }
+    }
 
     let config_dir = network_config.name.clone();
     if args.force {

@@ -16,12 +16,23 @@ impl Serialize for ClientConfig {
     where
         S: serde::Serializer,
     {
-        let mut client = serializer.serialize_struct("Client", 5)?;
-        client.serialize_field("ip", &self.ip)?;
-        client.serialize_field("output", &self.output)?;
-        client.serialize_field("encryption", &self.encryption)?;
-        client.serialize_field("dns", &self.dns)?;
-        client.serialize_field("privatekey", &self.privatekey)?;
-        client.end()
+        let mut client;
+
+        if &self.output == "nix" {
+            client = serializer.serialize_struct("Client", 5)?;
+            client.serialize_field("ip", &self.ip)?;
+            client.serialize_field("output", &self.output)?;
+            client.serialize_field("encryption", &self.encryption)?;
+            client.serialize_field("dns", &self.dns)?;
+            client.serialize_field("privatekey", &self.privatekey)?;
+            client.end()
+        } else {
+            client = serializer.serialize_struct("Client", 4)?;
+            client.serialize_field("ip", &self.ip)?;
+            client.serialize_field("output", &self.output)?;
+            client.serialize_field("dns", &self.dns)?;
+            client.serialize_field("privatekey", &self.privatekey)?;
+            client.end()
+        }
     }
 }
