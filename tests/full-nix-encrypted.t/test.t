@@ -166,6 +166,10 @@ Confirm that configs have the correct output
   }
                (no-eol)
 
+Confirm that valid nix was generated:
+  $ nix-instantiate --parse wired/full/client.nix > /dev/null 
+  $ nix-instantiate --parse wired/full/server.nix > /dev/null 
+
 Check that statefile is correct:
   $ cat full.statefile
   [network]

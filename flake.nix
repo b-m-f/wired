@@ -26,6 +26,7 @@
             just
             wireguard-tools
             pass
+            nixVersions.latest
           ];
 
           shellHook = ''

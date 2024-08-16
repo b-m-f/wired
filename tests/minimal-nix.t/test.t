@@ -10,6 +10,10 @@ Check that expected files were created
   server.key
   server.nix
 
+Confirm that valid nix was generated:
+  $ nix-instantiate --parse wired/minimal/client.nix > /dev/null 
+  $ nix-instantiate --parse wired/minimal/server.nix > /dev/null 
+
 Check that statefile changed with new keys
   $ cmp minimal.toml minimal.statefile
   minimal.toml minimal.statefile differ: char 11, line 2
