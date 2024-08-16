@@ -328,7 +328,11 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
                 match field_key.as_str() {
                     "privatekey" => {
                         privatekey = match client.get(field_key) {
-                            Some(key) => key.to_string().replace("\"", ""),
+                            Some(key) => match key.as_str() {
+                                Some("") => get_private_key()?,
+                                Some(_) => key.to_string().replace("\"", ""),
+                                None => get_private_key()?,
+                            },
                             None => get_private_key()?,
                         }
                     }
