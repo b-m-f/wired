@@ -7,6 +7,7 @@ cidrv4 = "10.100.1.0/24"
 [servers]
 [servers.server]
 ip = "10.100.1.1"
+output = "conf"
 privatekey = "MHYE0gQavBWsRvMNMOoYB/cL3YFoiiWpWAq5PjHMw0c="
 listenport = 20202
 endpoint = "1.1.1.1"
@@ -15,5 +16,6 @@ persistentkeepalive = 5
 [clients]
 [clients.client]
 ip = "10.100.1.1"
+output = "conf"
 dns = "10.10.10.1"
 privatekey = "8Fp1TVFMWY0qYufoGm6qFeJXrtzU3FodpoiCkdJfQ2k="

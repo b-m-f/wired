@@ -7,16 +7,10 @@ Check that expected files were created
   client.conf
   server.conf
 
-Check that statefile is the same as input
+Check that statefile is almost the same as input 
   $ cmp full.toml full.statefile
-  full.toml full.statefile differ: char 171, line 10
-  [1]
+
   $ diff full.toml full.statefile
-  9a10
-  > output = "conf"
-  17a19
-  > output = "conf"
-  [1]
 
 Check that statefile is different after rekey
   $ wired --config-file full.toml -f -r

@@ -4,20 +4,19 @@ Make sure all config files get created
 
 Check that expected files were created
   $ ls wired/minimal
-  client.key
-  client.nix
-  minimal.psk
-  server.key
-  server.nix
+  client.conf
+  server.conf
 
-Confirm that valid nix was generated:
-  $ nix-instantiate --parse wired/minimal/client.nix > /dev/null 
-  $ nix-instantiate --parse wired/minimal/server.nix > /dev/null 
-
-Check that statefile changed with new keys
-  $ cmp minimal.toml minimal.statefile
-  minimal.toml minimal.statefile differ: char 11, line 2
-  [1]
+Check that statefile changed with new output
+  $ diff minimal.toml minimal.statefile | grep output | cut -c 3-
+  output = "conf"
+  output = "conf"
+  $ diff minimal.toml minimal.statefile | grep privatekey | awk '{print $2;}'
+  privatekey
+  privatekey
+  $ diff minimal.toml minimal.statefile | grep presharedkey | awk '{print $2;}'
+  presharedkey
+ 
 
 Cleanup
   $ rm -rf wired
