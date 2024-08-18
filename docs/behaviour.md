@@ -1,6 +1,19 @@
-## Force key regeneration
-Call the program with `--rekey`. This will ignore all previously existing keys.
+# Key management
 
-## Force config overwrite
-<!-- TODO: test this -->
+You can omit all the key fields. In this case new keys will be generated.
+Here are additional rules:
+
+- Specified privatekeys/presharedkey will be kept
+- Publickeys will always be regenerated from privatekeys
+
+# Config overwrite
 Existing configuration files will not be overwritten. Call with `--force` to do it anyway
+
+# Auto encryption
+If you choose `nix` as an output format you can optionally enable auto encryption of your secrets.
+The following encryption processes are currently supported:
+
+## Colmena and pass
+Make sure that your password-store is initialized and set the [encryption option](./configuration.md) to `colmena:pass`.
+
+After running `wired` you can simply import the generated `nix` files in your main configuration and deploy with `colmena`.
