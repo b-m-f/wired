@@ -17,3 +17,6 @@ The following encryption processes are currently supported:
 Make sure that your password-store is initialized and set the [encryption option](./configuration.md) to `colmena:pass`.
 
 After running `wired` you can simply import the generated `nix` files in your main configuration and deploy with `colmena`.
+
+### Fallback
+Privatekeys and Presharedkeys will still be written to the output directory in case something goes wrong and you need to do something manually. Make sure not to blindly check in that folder.
