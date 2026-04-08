@@ -4,3 +4,4 @@ wireguard
 .direnv
 ./full.toml
 *.t.err
+tests/full-nix-encrypted.t/.gnupg/

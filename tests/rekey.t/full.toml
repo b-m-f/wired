@@ -3,6 +3,7 @@ presharedkey = "qPQ/T+4dHydnvk8cZXh+zBpZqOmLvaoxbC0W6c2gwtg="
 name = "full"
 type = "web"
 cidrv4 = "10.100.1.0/24"
+always-rotate-key = false
 
 [servers]
 [servers.server]
@@ -12,6 +13,7 @@ privatekey = "MHYE0gQavBWsRvMNMOoYB/cL3YFoiiWpWAq5PjHMw0c="
 listenport = 20202
 endpoint = "1.1.1.1"
 persistentkeepalive = 5
+always-rotate-key = false
 
 [clients]
 [clients.client]
@@ -19,3 +21,4 @@ ip = "10.100.1.1"
 output = "conf"
 dns = "10.10.10.1"
 privatekey = "8Fp1TVFMWY0qYufoGm6qFeJXrtzU3FodpoiCkdJfQ2k="
+always-rotate-key = false

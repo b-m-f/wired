@@ -1,7 +1,13 @@
 Make sure all config files get created
   $ cd $TESTDIR
   $ export PASSWORD_STORE_DIR=$TESTDIR/secrets
-  $ pass init D607F9E45D7E32B311E9D9321E185A89832FCE97 >/dev/null
+  $ export GNUPGHOME=$TESTDIR/.gnupg
+  $ mkdir -p $GNUPGHOME
+  $ chmod 700 $GNUPGHOME
+  $ gpg --batch --passphrase '' --quick-gen-key wired-test default default never
+  .* (re)
+  [2]
+  $ pass init wired-test >/dev/null
  
   $ wired --config-file full.toml
   Successfully encrypted all server secrets with pass
@@ -63,13 +69,11 @@ Confirm that configs have the correct output
                   };
                   wireguardPeers = [
                     {
-                     wireguardPeerConfig = {
                        PublicKey = "vvLcDOPrSPIflR8dJtM5Q3iqQCSCPvoyFaLrUlWoIHM=";
                        AllowedIPs = ["10.100.1.1"];
                        Endpoint = "1.1.1.1:20202";
                        PersistentKeepalive = 5;
                        PresharedKeyFile="/etc/wired/wg-full.psk";
-                     };
                   }
                   ];
                 };
@@ -85,9 +89,7 @@ Confirm that configs have the correct output
                 };
                 routes = [
                      {
-                       routeConfig = {
-                         Destination = "10.100.1.0/24";
-                       };
+                       Destination = "10.100.1.0/24";
                      }
                 ];
           };
@@ -144,11 +146,9 @@ Confirm that configs have the correct output
           };
           wireguardPeers = [
             {
-            wireguardPeerConfig = {
               PublicKey = "92hH4QGMnvO0bnNMt8Bq3u17Sp0B5zPKWp7firxesGM=";
               AllowedIPs =["10.100.1.1"];
               PresharedKeyFile="/etc/wired/wg-full.psk";
-            };
           }
           ];
         };
@@ -157,9 +157,7 @@ Confirm that configs have the correct output
       address = ["10.100.1.1/32"];
       routes = [
          {
-            routeConfig = {
-              Destination = "10.100.1.0/24";
-            };
+            Destination = "10.100.1.0/24";
          }
       ];
     };
@@ -177,6 +175,7 @@ Check that statefile is correct:
   name = "full"
   type = "web"
   cidrv4 = "10.100.1.0/24"
+  always-rotate-key = false
   
   [servers]
   [servers.server]
@@ -187,6 +186,7 @@ Check that statefile is correct:
   listenport = 20202
   endpoint = "1.1.1.1"
   persistentkeepalive = 5
+  always-rotate-key = false
   
   [clients]
   [clients.client]
@@ -195,14 +195,13 @@ Check that statefile is correct:
   encryption = "colmena:pass"
   dns = "10.10.10.1"
   privatekey = "8Fp1TVFMWY0qYufoGm6qFeJXrtzU3FodpoiCkdJfQ2k="
+  always-rotate-key = false
 
 Check that statefile is the same as input
   $ cmp full.toml full.statefile
   $ diff full.toml full.statefile
 
 Check that secrets where created
-  $ ls secrets/wired
-  full
   $ ls secrets/wired/full
   client.key.gpg
   full.psk.gpg

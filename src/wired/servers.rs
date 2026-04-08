@@ -13,6 +13,7 @@ pub struct ServerConfig {
     pub output: String,
     pub name: String,
     pub encryption: String,
+    pub always_rotate_key: bool,
 }
 impl Serialize for ServerConfig {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -22,7 +23,7 @@ impl Serialize for ServerConfig {
         let mut client;
 
         if &self.output == "nix" {
-            client = serializer.serialize_struct("Server", 8)?;
+            client = serializer.serialize_struct("Server", 9)?;
             client.serialize_field("ip", &self.ip)?;
             client.serialize_field("output", &self.output)?;
             client.serialize_field("encryption", &self.encryption)?;
@@ -31,9 +32,10 @@ impl Serialize for ServerConfig {
             client.serialize_field("listenport", &self.listenport)?;
             client.serialize_field("endpoint", &self.endpoint)?;
             client.serialize_field("persistentkeepalive", &self.persistentkeepalive)?;
+            client.serialize_field("always-rotate-key", &self.always_rotate_key)?;
             client.end()
         } else {
-            client = serializer.serialize_struct("Server", 7)?;
+            client = serializer.serialize_struct("Server", 8)?;
             client.serialize_field("ip", &self.ip)?;
             client.serialize_field("output", &self.output)?;
             client.serialize_field("dns", &self.dns)?;
@@ -41,6 +43,7 @@ impl Serialize for ServerConfig {
             client.serialize_field("listenport", &self.listenport)?;
             client.serialize_field("endpoint", &self.endpoint)?;
             client.serialize_field("persistentkeepalive", &self.persistentkeepalive)?;
+            client.serialize_field("always-rotate-key", &self.always_rotate_key)?;
             client.end()
         }
     }

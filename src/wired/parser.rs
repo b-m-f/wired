@@ -30,6 +30,7 @@ pub fn parse_network(config: &Config) -> Result<NetworkConfig, String> {
     let mut name = "".to_string();
     let mut psk = get_preshared_key()?;
     let mut network_type = "web".to_string();
+    let mut always_rotate_key = false;
 
     // Check that all required fields are set
     let required = ["name", "cidrv4"];
@@ -72,6 +73,12 @@ pub fn parse_network(config: &Config) -> Result<NetworkConfig, String> {
                     None => "web".to_string(),
                 }
             }
+            "always-rotate-key" => {
+                always_rotate_key = match value.as_bool() {
+                    Some(always_rotate_key) => always_rotate_key,
+                    None => false,
+                }
+            }
             _ => return Err(format!("Unkown field {key} specified for network")),
         }
     }
@@ -81,6 +88,7 @@ pub fn parse_network(config: &Config) -> Result<NetworkConfig, String> {
         presharedkey: psk,
         // TODO: Make own doc file for network types
         r#type: network_type,
+        always_rotate_key,
     });
 }
 
@@ -113,6 +121,7 @@ pub fn parse_servers(config: &Config) -> Result<Vec<ServerConfig>, String> {
             let mut listenport: u16 = 51820;
             let mut output: String = "conf".to_string();
             let mut encryption: String = "none".to_string();
+            let mut always_rotate_key = false;
             // Check that all required fields are set
             let required = ["ip", "listenport", "endpoint"];
             for key in required {
@@ -235,6 +244,10 @@ pub fn parse_servers(config: &Config) -> Result<Vec<ServerConfig>, String> {
                         },
                         None => "conf".to_string(),
                     },
+                    "always-rotate-key" => always_rotate_key = match server.get(field_key) {
+                        Some(val) => val.as_bool().unwrap_or(false),
+                        None => false,
+                    },
                     _ => return Err(format!("Unkown entry '{}' for server {name}", field_key)),
                 }
             }
@@ -257,6 +270,7 @@ pub fn parse_servers(config: &Config) -> Result<Vec<ServerConfig>, String> {
                 ip,
                 persistentkeepalive: pka,
                 encryption,
+                always_rotate_key,
             };
             configs.push(server_config);
         } else {
@@ -301,6 +315,7 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
             let mut dns: Option<String> = None;
             let mut output: String = "conf".to_string();
             let mut encryption: String = "none".to_string();
+            let mut always_rotate_key = false;
             let mut postpone_config_generation_until_all_defined_ips_are_known = false;
 
             // Check that all required fields are set
@@ -404,6 +419,10 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
                             None => "conf".to_string(),
                         }
                     }
+                    "always-rotate-key" => always_rotate_key = match client.get(field_key) {
+                        Some(val) => val.as_bool().unwrap_or(false),
+                        None => false,
+                    },
                     _ => return Err(format!("Unkown entry '{}' for client {name}", field_key)),
                 }
             }
@@ -423,6 +442,7 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
                 publickey,
                 output,
                 encryption,
+                always_rotate_key,
             };
             if postpone_config_generation_until_all_defined_ips_are_known {
                 configs_without_ip.push(client_config);
@@ -450,6 +470,7 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
                             privatekey: client.privatekey.clone(),
                             name: client.name.clone(),
                             encryption: client.encryption.clone(),
+                            always_rotate_key: client.always_rotate_key,
                         });
                     }
                     None => {

@@ -2,7 +2,7 @@
   description = "Nix flake for wired";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/release-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/release-25.11";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -23,6 +23,7 @@
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             python312Packages.cram
+            cargo
             just
             wireguard-tools
             pass

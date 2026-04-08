@@ -7,9 +7,7 @@ pub struct NetworkConfig {
     pub presharedkey: String,
     pub name: String,
     pub r#type: String,
-    // // TODO: extract these bools onto the top-level
-    // pub rotate_keys: bool,
-    // pub rotate_ips: bool,
+    pub always_rotate_key: bool,
 }
 
 impl Serialize for NetworkConfig {
@@ -17,11 +15,12 @@ impl Serialize for NetworkConfig {
     where
         S: serde::Serializer,
     {
-        let mut network = serializer.serialize_struct("Network", 4)?;
+        let mut network = serializer.serialize_struct("Network", 5)?;
         network.serialize_field("presharedkey", &self.presharedkey)?;
         network.serialize_field("name", &self.name)?;
         network.serialize_field("type", &self.r#type)?;
         network.serialize_field("cidrv4", &self.cidrv4.to_string())?;
+        network.serialize_field("always-rotate-key", &self.always_rotate_key)?;
         network.end()
     }
 }

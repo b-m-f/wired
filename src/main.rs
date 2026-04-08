@@ -1,5 +1,6 @@
 mod wired;
 
+use std::{fs::read_to_string, path::Path};
 use clap::Parser;
 use wired::{
     command,
@@ -35,14 +36,35 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
-    let config: Config = match wired::files::read_config(&args.config_file) {
-        Ok(content) => match wired::parser::parse_config(content) {
-            Ok(config) => config,
-            Err(e) => {
+    let mut config_content: String = match wired::files::read_config(&args.config_file) {
+        Ok(content) => content,
+        Err(e) => {
+            eprintln!("{e}");
+            std::process::exit(1);
+        }
+    };
+
+    let statefile_path = match wired::parser::parse_config(config_content.clone()) {
+        Ok(config) => {
+            let network = wired::parser::parse_network(&config).unwrap_or_else(|e| {
                 eprintln!("{e}");
                 std::process::exit(1);
-            }
-        },
+            });
+            format!("{}.statefile", network.name)
+        }
+        Err(e) => {
+            eprintln!("{e}");
+            std::process::exit(1);
+        }
+    };
+
+    if Path::new(&statefile_path).exists() {
+        let state_content = read_to_string(&statefile_path).unwrap();
+        config_content = state_content;
+    }
+
+    let config: Config = match wired::parser::parse_config(config_content) {
+        Ok(config) => config,
         Err(e) => {
             eprintln!("{e}");
             std::process::exit(1);
@@ -64,14 +86,16 @@ fn main() {
     });
 
     // Rekeying
-    if args.rekey {
-        network_config.presharedkey = match get_preshared_key() {
-            Err(e) => {
-                eprintln!("Error when trying to create new presharedkey for network: {e}");
-                std::process::exit(1);
-            }
-            Ok(key) => key,
-        };
+    if args.rekey || network_config.always_rotate_key {
+        if args.rekey {
+            network_config.presharedkey = match get_preshared_key() {
+                Err(e) => {
+                    eprintln!("Error when trying to create new presharedkey for network: {e}");
+                    std::process::exit(1);
+                }
+                Ok(key) => key,
+            };
+        }
         for server in server_configs.iter_mut() {
             server.privatekey = match get_private_key() {
                 Err(e) => {
@@ -89,6 +113,29 @@ fn main() {
                 }
                 Ok(key) => key,
             };
+        }
+    } else {
+        for server in server_configs.iter_mut() {
+            if server.always_rotate_key {
+                server.privatekey = match get_private_key() {
+                    Err(e) => {
+                        eprintln!("Error when trying to create new privatekey for server: {e}");
+                        std::process::exit(1);
+                    }
+                    Ok(key) => key,
+                };
+            }
+        }
+        for client in client_configs.iter_mut() {
+            if client.always_rotate_key {
+                client.privatekey = match get_private_key() {
+                    Err(e) => {
+                        eprintln!("Error when trying to create new privatekey for client: {e}");
+                        std::process::exit(1);
+                    }
+                    Ok(key) => key,
+                };
+            }
         }
     }
 

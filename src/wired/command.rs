@@ -54,30 +54,21 @@ pub fn run_with_input_on_stdin(
     return Ok(output_string.trim().to_string());
 }
 pub fn encrypt_with_pass(destination: String, input: String) -> Result<(), String> {
-    let mut cmd = Command::new("pass");
+    let mut cmd = Command::new("sh");
     cmd.stdin(Stdio::piped());
     cmd.stdout(Stdio::null());
     cmd.stderr(Stdio::null());
-    for arg in ["insert", "-e", &destination] {
-        cmd.arg(arg);
-    }
-    let mut cmd = match cmd.spawn() {
-        Ok(cmd) => cmd,
+    cmd.arg("-c");
+    cmd.arg(format!("echo -n \"$INPUT\" | pass insert -m \"$DEST\""));
+    cmd.env("INPUT", input);
+    cmd.env("DEST", destination);
+
+    let mut child = match cmd.spawn() {
+        Ok(child) => child,
         Err(e) => return Err(e.to_string()),
     };
-    let mut stdin = match cmd.stdin.take() {
-        Some(cmd) => cmd,
-        None => {
-            return Err("Could not get access to sub-process 'pass' stdin. Aborting".to_string())
-        }
-    };
-    std::thread::spawn(move || {
-        stdin
-            .write_all(input.as_bytes())
-            .expect("Passing data to pass");
-    });
 
-    cmd.wait().expect("Waiting for pass to finish");
+    child.wait().expect("Waiting for pass to finish");
 
     return Ok(());
 }

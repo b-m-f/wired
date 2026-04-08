@@ -1,0 +1,16 @@
+[network]
+name = "rotate_client"
+type = "web"
+cidrv4 = "10.100.1.0/24"
+
+[servers]
+[servers.server]
+ip = "10.100.1.1"
+listenport = 20202
+endpoint = "1.1.1.1"
+always-rotate-key = false
+
+[clients]
+[clients.client]
+ip = "10.100.1.2"
+always-rotate-key = true

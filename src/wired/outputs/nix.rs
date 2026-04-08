@@ -70,11 +70,9 @@ pub fn generate_server(
         let ip = client.ip;
         let peer = format!(
             "{{
-          wireguardPeerConfig = {{
             PublicKey = \"{publickey}\";
             AllowedIPs =[\"{ip}\"];
             PresharedKeyFile=\"{psk_path}\";
-          }};
         }}"
         );
         peers.push(peer);
@@ -113,9 +111,7 @@ pub fn generate_server(
     address = [\"{ip}/32\"];
     routes = [
        {{
-          routeConfig = {{
-            Destination = \"{cidr}\";
-          }};
+          Destination = \"{cidr}\";
        }}
     ];
   }};
@@ -162,13 +158,11 @@ pub fn generate_client(
         };
         let peer = format!(
             "{{
-                   wireguardPeerConfig = {{
                      PublicKey = \"{publickey}\";
                      AllowedIPs = [\"{ip}\"];
                      Endpoint = \"{endpoint}:{listenport}\";
                      {persistentkeepalive}
                      PresharedKeyFile=\"{psk_path}\";
-                   }};
                 }}"
         );
         peers.push(peer)
@@ -210,9 +204,7 @@ pub fn generate_client(
               }};
               routes = [
                    {{
-                     routeConfig = {{
-                       Destination = \"{cidr}\";
-                     }};
+                     Destination = \"{cidr}\";
                    }}
               ];
         }};
