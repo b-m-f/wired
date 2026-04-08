@@ -18,7 +18,8 @@ For nix there is optional auto-encryption of keys via [pass](https://www.passwor
 - run wired, pass configuration with `-c`
 - Config files will now be in a directory named after the network name
 - Backup the generated statefile to recreated the exact same configs in the
-  future.
+  future. Wired will automatically merge the statefile if it exists in the 
+  current directory.
 
 ## Documentation
 
