@@ -1,7 +1,7 @@
 mod wired;
 
-use std::{fs::read_to_string, path::Path};
 use clap::Parser;
+use std::{fs::read_to_string, path::Path};
 use wired::{
     command,
     crypto::{get_preshared_key, get_private_key},
@@ -86,16 +86,14 @@ fn main() {
     });
 
     // Rekeying
-    if args.rekey || network_config.always_rotate_key {
-        if args.rekey {
-            network_config.presharedkey = match get_preshared_key() {
-                Err(e) => {
-                    eprintln!("Error when trying to create new presharedkey for network: {e}");
-                    std::process::exit(1);
-                }
-                Ok(key) => key,
-            };
-        }
+    if args.rekey {
+        network_config.presharedkey = match get_preshared_key() {
+            Err(e) => {
+                eprintln!("Error when trying to create new presharedkey for network: {e}");
+                std::process::exit(1);
+            }
+            Ok(key) => key,
+        };
         for server in server_configs.iter_mut() {
             server.privatekey = match get_private_key() {
                 Err(e) => {

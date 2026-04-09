@@ -175,7 +175,6 @@ Check that statefile is correct:
   name = "full"
   type = "web"
   cidrv4 = "10.100.1.0/24"
-  always-rotate-key = false
   
   [servers]
   [servers.server]

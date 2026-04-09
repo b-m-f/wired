@@ -24,6 +24,7 @@
           packages = with pkgs; [
             python312Packages.cram
             cargo
+            rustc
             just
             wireguard-tools
             pass

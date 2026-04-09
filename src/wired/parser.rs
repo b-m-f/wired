@@ -30,7 +30,6 @@ pub fn parse_network(config: &Config) -> Result<NetworkConfig, String> {
     let mut name = "".to_string();
     let mut psk = get_preshared_key()?;
     let mut network_type = "web".to_string();
-    let mut always_rotate_key = false;
 
     // Check that all required fields are set
     let required = ["name", "cidrv4"];
@@ -48,7 +47,7 @@ pub fn parse_network(config: &Config) -> Result<NetworkConfig, String> {
                     Some(cidr) => match Ipv4Net::from_str(&cidr.to_string()) {
                         Ok(cidr) => cidr,
                         Err(e) => {
-                            return Err(format!("Error when parsing cidrv4 for network: {e}"))
+                            return Err(format!("Error when parsing cidrv4 for network: {e}"));
                         }
                     },
                     None => return Err(format!("Network is missing cidrv4 configuration")),
@@ -73,12 +72,6 @@ pub fn parse_network(config: &Config) -> Result<NetworkConfig, String> {
                     None => "web".to_string(),
                 }
             }
-            "always-rotate-key" => {
-                always_rotate_key = match value.as_bool() {
-                    Some(always_rotate_key) => always_rotate_key,
-                    None => false,
-                }
-            }
             _ => return Err(format!("Unkown field {key} specified for network")),
         }
     }
@@ -88,7 +81,6 @@ pub fn parse_network(config: &Config) -> Result<NetworkConfig, String> {
         presharedkey: psk,
         // TODO: Make own doc file for network types
         r#type: network_type,
-        always_rotate_key,
     });
 }
 
@@ -109,7 +101,7 @@ pub fn parse_servers(config: &Config) -> Result<Vec<ServerConfig>, String> {
                     return Err(format!(
                         "Error when parsing server {}. Client is not a proper TOML table",
                         server_name
-                    ))
+                    ));
                 }
             };
             // Set mock content to overwrite and defaults
@@ -134,9 +126,13 @@ pub fn parse_servers(config: &Config) -> Result<Vec<ServerConfig>, String> {
                 Some(value) => {
                     if value.to_string() == "nix".to_string() {
                         match server.get("encryption") {
-                    Some(_) => (),
-                    None => return Err(format!("Client {name} has no encryption defined. This is required for nix output.")),
-                }
+                            Some(_) => (),
+                            None => {
+                                return Err(format!(
+                                    "Client {name} has no encryption defined. This is required for nix output."
+                                ));
+                            }
+                        }
                     }
                 }
                 None => (),
@@ -146,12 +142,11 @@ pub fn parse_servers(config: &Config) -> Result<Vec<ServerConfig>, String> {
                 match field_key.as_str() {
                     "privatekey" => {
                         privatekey = match server.get(field_key) {
-                            Some(key) => match key.as_str(){
+                            Some(key) => match key.as_str() {
                                 Some("") => get_private_key()?,
                                 Some(_) => key.to_string().replace("\"", ""),
                                 None => get_private_key()?,
-
-                            }
+                            },
                             None => get_private_key()?,
                         }
                     }
@@ -159,12 +154,15 @@ pub fn parse_servers(config: &Config) -> Result<Vec<ServerConfig>, String> {
                         endpoint = match server.get(field_key) {
                             // TODO: validate that its a correct host
                             Some(endpoint) => {
-                                if endpoint.is_str(){
-                                endpoint.to_string().replace("\"", "")}
-
-                            else{return Err(format!("Server {} has wrong endpoint defined: '{endpoint}'",name))}
-
-                            },
+                                if endpoint.is_str() {
+                                    endpoint.to_string().replace("\"", "")
+                                } else {
+                                    return Err(format!(
+                                        "Server {} has wrong endpoint defined: '{endpoint}'",
+                                        name
+                                    ));
+                                }
+                            }
                             None => return Err(format!("Server {} has no endpoint defined", name)),
                         }
                     }
@@ -184,70 +182,102 @@ pub fn parse_servers(config: &Config) -> Result<Vec<ServerConfig>, String> {
                                             ip
                                         } else {
                                             let cidr = network.cidrv4;
-                                            return Err(format!("IP {ip} of server {name} is not in network CIDR {cidr}"))
+                                            return Err(format!(
+                                                "IP {ip} of server {name} is not in network CIDR {cidr}"
+                                            ));
                                         }
                                     }
                                     Err(e) => {
-                                        return Err(format!("Error when parsing IP {ip} of server {name}: {e}"))
+                                        return Err(format!(
+                                            "Error when parsing IP {ip} of server {name}: {e}"
+                                        ));
                                     }
                                 }
                             }
                             None => return Err(format!("Server {} has no ip defined", name)),
                         }
                     }
-                    "persistentkeepalive" => pka = match server.get(field_key) {
-                        Some(pka) => match pka.as_integer() {
-                            Some(pka) => match u16::try_from(pka){
-                                Ok(pka) => Some(pka),
-                                    Err(e) => return Err( format!("Error when parsing persistentkeepalive '{pka}' for server {name}: {e}"))
-                            }
-                                ,
-                            None => return Err(format!(
-
-                                "Incorrect persistentkeepalive {field_value} configured for server {name}"
-                            )),
-                        },
-                        None => None,
-                    },
-                    "listenport" => listenport = match server.get(field_key){
-                        Some(port) => match port.as_integer(){
-                            Some(port) =>
-                                match u16::try_from(port){
-                                    Ok(port) => port,
-                                    Err(e) => return Err(format!("Error when parsing listenport '{port}' for server {name}: {e}"))
+                    "persistentkeepalive" => {
+                        pka = match server.get(field_key) {
+                            Some(pka) => match pka.as_integer() {
+                                Some(pka) => match u16::try_from(pka) {
+                                    Ok(pka) => Some(pka),
+                                    Err(e) => {
+                                        return Err(format!(
+                                            "Error when parsing persistentkeepalive '{pka}' for server {name}: {e}"
+                                        ));
+                                    }
+                                },
+                                None => {
+                                    return Err(format!(
+                                        "Incorrect persistentkeepalive {field_value} configured for server {name}"
+                                    ));
                                 }
-                            ,None=> return Err(format!("Incorrect listenport '{port}' specified for server {name}"))
-
-                        },
-                        None => return Err(format!("Missing listenport for server {name}")),
-
-                    },
-                    "output" => output = match server.get(field_key){
-                        Some(output) => {
-                        let output_checked = match output.to_string().replace("\"", "").as_str(){
-                            "conf" => output.to_string().replace("\"", ""),
-                            "nix" =>output.to_string().replace("\"", ""),
-                            _ => return Err(format!("Unkown output '{output}' for server {name}"))
-                        };
-                        output_checked
-                        },
-                        None => "conf".to_string(),
-                    },
-                    "encryption" => encryption = match server.get(field_key){
-                        Some(enc) => {
-                            let enc_checked = match enc.to_string().replace("\"", "").as_str(){
-                                "none" => enc.to_string().replace("\"", ""),
-                                "colmena:pass" =>enc.to_string().replace("\"", ""),
-                                _ => return Err(format!("Unkown output '{output}' for server {name}"))
-                            };
-                            enc_checked
-                        },
-                        None => "conf".to_string(),
-                    },
-                    "always-rotate-key" => always_rotate_key = match server.get(field_key) {
-                        Some(val) => val.as_bool().unwrap_or(false),
-                        None => false,
-                    },
+                            },
+                            None => None,
+                        }
+                    }
+                    "listenport" => {
+                        listenport = match server.get(field_key) {
+                            Some(port) => match port.as_integer() {
+                                Some(port) => match u16::try_from(port) {
+                                    Ok(port) => port,
+                                    Err(e) => {
+                                        return Err(format!(
+                                            "Error when parsing listenport '{port}' for server {name}: {e}"
+                                        ));
+                                    }
+                                },
+                                None => {
+                                    return Err(format!(
+                                        "Incorrect listenport '{port}' specified for server {name}"
+                                    ));
+                                }
+                            },
+                            None => return Err(format!("Missing listenport for server {name}")),
+                        }
+                    }
+                    "output" => {
+                        output = match server.get(field_key) {
+                            Some(output) => {
+                                let output_checked =
+                                    match output.to_string().replace("\"", "").as_str() {
+                                        "conf" => output.to_string().replace("\"", ""),
+                                        "nix" => output.to_string().replace("\"", ""),
+                                        _ => {
+                                            return Err(format!(
+                                                "Unkown output '{output}' for server {name}"
+                                            ));
+                                        }
+                                    };
+                                output_checked
+                            }
+                            None => "conf".to_string(),
+                        }
+                    }
+                    "encryption" => {
+                        encryption = match server.get(field_key) {
+                            Some(enc) => {
+                                let enc_checked = match enc.to_string().replace("\"", "").as_str() {
+                                    "none" => enc.to_string().replace("\"", ""),
+                                    "colmena:pass" => enc.to_string().replace("\"", ""),
+                                    _ => {
+                                        return Err(format!(
+                                            "Unkown output '{output}' for server {name}"
+                                        ));
+                                    }
+                                };
+                                enc_checked
+                            }
+                            None => "conf".to_string(),
+                        }
+                    }
+                    "always-rotate-key" => {
+                        always_rotate_key = match server.get(field_key) {
+                            Some(val) => val.as_bool().unwrap_or(false),
+                            None => false,
+                        }
+                    }
                     _ => return Err(format!("Unkown entry '{}' for server {name}", field_key)),
                 }
             }
@@ -256,7 +286,7 @@ pub fn parse_servers(config: &Config) -> Result<Vec<ServerConfig>, String> {
                 Err(e) => {
                     return Err(format!(
                         "Error when decoding privatekey for server {name}: {e}"
-                    ))
+                    ));
                 }
             };
             let server_config = ServerConfig {
@@ -305,7 +335,7 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
                     return Err(format!(
                         "Error when parsing client {}. Client is not a proper TOML table",
                         client_name
-                    ))
+                    ));
                 }
             };
             // Set mock content to overwrite and defaults
@@ -330,9 +360,13 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
                 Some(value) => {
                     if value.to_string() == "nix".to_string() {
                         match client.get("encryption") {
-                    Some(_) => (),
-                    None => return Err(format!("Client {name} has no encryption defined. This is required for nix output.")),
-                }
+                            Some(_) => (),
+                            None => {
+                                return Err(format!(
+                                    "Client {name} has no encryption defined. This is required for nix output."
+                                ));
+                            }
+                        }
                     }
                 }
                 None => (),
@@ -360,14 +394,16 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
                                             ip
                                         } else {
                                             let cidr = network.cidrv4;
-                                            return Err(format!("IP {ip} of client {name} is not in network CIDR {cidr}"));
+                                            return Err(format!(
+                                                "IP {ip} of client {name} is not in network CIDR {cidr}"
+                                            ));
                                         }
                                     }
                                     Err(e) => {
                                         return Err(format!(
                                             "Error when parsing IP of client {}: {}",
                                             &name, e
-                                        ))
+                                        ));
                                     }
                                 }
                             }
@@ -394,7 +430,7 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
                                         _ => {
                                             return Err(format!(
                                                 "Unkown output '{output}' for client {name}"
-                                            ))
+                                            ));
                                         }
                                     };
                                 output_checked
@@ -411,7 +447,7 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
                                     _ => {
                                         return Err(format!(
                                             "Unkown output '{output}' for server {name}"
-                                        ))
+                                        ));
                                     }
                                 };
                                 enc_checked
@@ -419,10 +455,12 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
                             None => "conf".to_string(),
                         }
                     }
-                    "always-rotate-key" => always_rotate_key = match client.get(field_key) {
-                        Some(val) => val.as_bool().unwrap_or(false),
-                        None => false,
-                    },
+                    "always-rotate-key" => {
+                        always_rotate_key = match client.get(field_key) {
+                            Some(val) => val.as_bool().unwrap_or(false),
+                            None => false,
+                        }
+                    }
                     _ => return Err(format!("Unkown entry '{}' for client {name}", field_key)),
                 }
             }
@@ -431,7 +469,7 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
                 Err(e) => {
                     return Err(format!(
                         "Error when decoding privatekey for client {name}: {e}"
-                    ))
+                    ));
                 }
             };
             let client_config: ClientConfig = ClientConfig {
@@ -477,7 +515,7 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
                         return Err(format!(
                             "No more IPs available for client {} in network CIDR {}",
                             client.name, &network.cidrv4
-                        ))
+                        ));
                     }
                 }
             }

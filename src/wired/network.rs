@@ -7,7 +7,6 @@ pub struct NetworkConfig {
     pub presharedkey: String,
     pub name: String,
     pub r#type: String,
-    pub always_rotate_key: bool,
 }
 
 impl Serialize for NetworkConfig {
@@ -20,7 +19,6 @@ impl Serialize for NetworkConfig {
         network.serialize_field("name", &self.name)?;
         network.serialize_field("type", &self.r#type)?;
         network.serialize_field("cidrv4", &self.cidrv4.to_string())?;
-        network.serialize_field("always-rotate-key", &self.always_rotate_key)?;
         network.end()
     }
 }
