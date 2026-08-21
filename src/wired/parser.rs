@@ -114,6 +114,7 @@ pub fn parse_servers(config: &Config) -> Result<Vec<ServerConfig>, String> {
             let mut output: String = "conf".to_string();
             let mut encryption: String = "none".to_string();
             let mut always_rotate_key = false;
+            let mut allowedips: Vec<String> = Vec::new();
             // Check that all required fields are set
             let required = ["ip", "listenport", "endpoint"];
             for key in required {
@@ -278,6 +279,34 @@ pub fn parse_servers(config: &Config) -> Result<Vec<ServerConfig>, String> {
                             None => false,
                         }
                     }
+                    "allowedips" => {
+                        allowedips = match server.get(field_key) {
+                            Some(val) => {
+                                let mut ips = Vec::new();
+                                let mut parse_error = None;
+                                match val.as_array() {
+                                    Some(arr) => {
+                                        for v in arr {
+                                            if let Some(s) = v.as_str() {
+                                                match validate_allowed_ip(s, name) {
+                                                    Ok(ip) => ips.push(ip),
+                                                    Err(e) => parse_error = Some(e),
+                                                }
+                                            }
+                                        }
+                                    }
+                                    None => {
+                                        parse_error = Some(format!("allowedips must be an array"));
+                                    }
+                                }
+                                if let Some(e) = parse_error {
+                                    return Err(e);
+                                }
+                                ips
+                            }
+                            None => Vec::new(),
+                        }
+                    }
                     _ => return Err(format!("Unkown entry '{}' for server {name}", field_key)),
                 }
             }
@@ -301,6 +330,7 @@ pub fn parse_servers(config: &Config) -> Result<Vec<ServerConfig>, String> {
                 persistentkeepalive: pka,
                 encryption,
                 always_rotate_key,
+                allowedips,
             };
             configs.push(server_config);
         } else {
@@ -346,6 +376,7 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
             let mut output: String = "conf".to_string();
             let mut encryption: String = "none".to_string();
             let mut always_rotate_key = false;
+            let mut allowedips: Vec<String> = Vec::new();
             let mut postpone_config_generation_until_all_defined_ips_are_known = false;
 
             // Check that all required fields are set
@@ -461,6 +492,34 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
                             None => false,
                         }
                     }
+                    "allowedips" => {
+                        allowedips = match client.get(field_key) {
+                            Some(val) => {
+                                let mut ips = Vec::new();
+                                let mut parse_error = None;
+                                match val.as_array() {
+                                    Some(arr) => {
+                                        for v in arr {
+                                            if let Some(s) = v.as_str() {
+                                                match validate_allowed_ip(s, &name) {
+                                                    Ok(ip) => ips.push(ip),
+                                                    Err(e) => parse_error = Some(e),
+                                                }
+                                            }
+                                        }
+                                    }
+                                    None => {
+                                        parse_error = Some(format!("allowedips must be an array"));
+                                    }
+                                }
+                                if let Some(e) = parse_error {
+                                    return Err(e);
+                                }
+                                ips
+                            }
+                            None => Vec::new(),
+                        }
+                    }
                     _ => return Err(format!("Unkown entry '{}' for client {name}", field_key)),
                 }
             }
@@ -481,6 +540,7 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
                 output,
                 encryption,
                 always_rotate_key,
+                allowedips,
             };
             if postpone_config_generation_until_all_defined_ips_are_known {
                 configs_without_ip.push(client_config);
@@ -509,6 +569,7 @@ pub fn parse_clients(config: &Config) -> Result<Vec<ClientConfig>, String> {
                             name: client.name.clone(),
                             encryption: client.encryption.clone(),
                             always_rotate_key: client.always_rotate_key,
+                            allowedips: client.allowedips.clone(),
                         });
                     }
                     None => {
@@ -546,4 +607,22 @@ fn get_next_available_ip(network_cidr: &Ipv4Net, used_ips: &mut Vec<Ipv4Addr>) -
         used_ips.push(ip_to_check);
         return Some(ip_to_check);
     }
+}
+
+fn validate_allowed_ip(ip_str: &str, entity_name: &str) -> Result<String, String> {
+    match ip_str.parse::<ipnet::IpNet>() {
+        Ok(_) => return Ok(ip_str.to_string()),
+        Err(_) => {}
+    }
+    match ip_str.parse::<std::net::IpAddr>() {
+        Ok(ip) => {
+            if ip.is_ipv4() {
+                return Ok(format!("{}/32", ip_str));
+            } else {
+                return Ok(format!("{}/128", ip_str));
+            }
+        }
+        Err(_) => {}
+    }
+    Err(format!("Invalid allowed IP '{}' for {}", ip_str, entity_name))
 }

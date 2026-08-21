@@ -1,0 +1,16 @@
+[network]
+name = "testnet"
+cidrv4 = "10.0.0.0/24"
+type = "web"
+presharedkey = "qPQ/T+4dHydnvk8cZXh+zBpZqOmLvaoxbC0W6c2gwtg="
+
+[servers]
+[servers.server]
+ip = "10.0.0.1"
+listenport =  20202
+endpoint = "1.1.1.1"
+allowedips = ["not_an_ip"]
+
+[clients]
+[clients.client]
+ip = "10.0.0.2"

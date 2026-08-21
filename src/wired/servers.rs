@@ -14,6 +14,7 @@ pub struct ServerConfig {
     pub name: String,
     pub encryption: String,
     pub always_rotate_key: bool,
+    pub allowedips: Vec<String>,
 }
 impl Serialize for ServerConfig {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -22,8 +23,11 @@ impl Serialize for ServerConfig {
     {
         let mut client;
 
+        let field_count_nix = 9 + if self.allowedips.is_empty() { 0 } else { 1 };
+        let field_count_conf = 8 + if self.allowedips.is_empty() { 0 } else { 1 };
+
         if &self.output == "nix" {
-            client = serializer.serialize_struct("Server", 9)?;
+            client = serializer.serialize_struct("Server", field_count_nix)?;
             client.serialize_field("ip", &self.ip)?;
             client.serialize_field("output", &self.output)?;
             client.serialize_field("encryption", &self.encryption)?;
@@ -33,9 +37,12 @@ impl Serialize for ServerConfig {
             client.serialize_field("endpoint", &self.endpoint)?;
             client.serialize_field("persistentkeepalive", &self.persistentkeepalive)?;
             client.serialize_field("always-rotate-key", &self.always_rotate_key)?;
+            if !self.allowedips.is_empty() {
+                client.serialize_field("allowedips", &self.allowedips)?;
+            }
             client.end()
         } else {
-            client = serializer.serialize_struct("Server", 8)?;
+            client = serializer.serialize_struct("Server", field_count_conf)?;
             client.serialize_field("ip", &self.ip)?;
             client.serialize_field("output", &self.output)?;
             client.serialize_field("dns", &self.dns)?;
@@ -44,6 +51,9 @@ impl Serialize for ServerConfig {
             client.serialize_field("endpoint", &self.endpoint)?;
             client.serialize_field("persistentkeepalive", &self.persistentkeepalive)?;
             client.serialize_field("always-rotate-key", &self.always_rotate_key)?;
+            if !self.allowedips.is_empty() {
+                client.serialize_field("allowedips", &self.allowedips)?;
+            }
             client.end()
         }
     }
