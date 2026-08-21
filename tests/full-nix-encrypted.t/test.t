@@ -165,8 +165,8 @@ Confirm that configs have the correct output
                (no-eol)
 
 Confirm that valid nix was generated:
-  $ nix-instantiate --parse wired/full/client.nix > /dev/null 
-  $ nix-instantiate --parse wired/full/server.nix > /dev/null 
+  $ nix-instantiate --parse wired/full/client.nix > /dev/null 2>nix_err || (cat nix_err; exit 1)
+  $ nix-instantiate --parse wired/full/server.nix > /dev/null 2>nix_err || (cat nix_err; exit 1)
 
 Check that statefile is correct:
   $ cat full.statefile
@@ -210,3 +210,4 @@ Cleanup
   $ rm -rf wired
   $ rm *.statefile
   $ rm -rf secrets
+  $ rm -f nix_err

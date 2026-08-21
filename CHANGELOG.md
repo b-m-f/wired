@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.0] - 2026-08-21
+
+### Added
+- Feature: pass additional `allowedIPs` for both clients and servers in the configuration file
+
 ## [2.1.1] - 2026-04-09
 
 ### Changed
