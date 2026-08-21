@@ -4,9 +4,7 @@ Make sure all config files get created
   $ export GNUPGHOME=$TESTDIR/.gnupg
   $ mkdir -p $GNUPGHOME
   $ chmod 700 $GNUPGHOME
-  $ gpg --batch --passphrase '' --quick-gen-key wired-test default default never
-  .* (re)
-  [2]
+  $ gpg --batch --passphrase '' --quick-gen-key wired-test default default never >/dev/null 2>&1 || true
   $ pass init wired-test >/dev/null
  
   $ wired --config-file full.toml

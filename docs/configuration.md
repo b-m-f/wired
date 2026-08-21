@@ -37,18 +37,21 @@ listenport = 20202
 endpoint = "1.1.1.1"
 persistentkeepalive = 5
 always-rotate-key = true
+allowedips = ["192.168.1.0/24"]
 
 [clients]
 [clients.client]
-ip = "10.100.1.1"
+ip = "10.100.1.2"
 output = "nix"
 encryption = "none"
 dns = "10.10.10.1"
 privatekey = "8Fp1TVFMWY0qYufoGm6qFeJXrtzU3FodpoiCkdJfQ2k="
 always-rotate-key = false
+allowedips = ["10.100.1.0/24"]
 ```
 
 ## Options
 | Key | Type | Default | Description |
 | --- | --- | --- | --- |
 | `always-rotate-key` | boolean | `false` | If true, the keypair for the network or peer will always be recreated, even if it already exists in the statefile. |
+| `allowedips` | array of strings | `[]` | Additional IP addresses or network CIDRs to route through this peer. Automatically adds /32 or /128 to single IPs. Host IP is automatically included and deduplicated. |
