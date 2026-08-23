@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.1] - 2026-08-23
+
+### Fixed
+- Fixed hardcoded CLI version string to match package version
+- Improved robustness of cram tests by suppressing noisy Nix gpg outputs
+
 ## [2.2.0] - 2026-08-21
 
 ### Added
