@@ -74,7 +74,7 @@ pub fn generate_server(
                 final_ips.push(format!("\"{}\"", a_ip));
             }
         }
-        let allowed_ips_str = final_ips.join(", ");
+        let allowed_ips_str = final_ips.join(" ");
         let peer = format!(
             "{{
             PublicKey = \"{publickey}\";
@@ -163,7 +163,7 @@ pub fn generate_client(
                 final_ips.push(format!("\"{}\"", a_ip));
             }
         }
-        let allowed_ips_str = final_ips.join(", ");
+        let allowed_ips_str = final_ips.join(" ");
         let endpoint = server.endpoint.clone();
         let listenport = server.listenport;
         let persistentkeepalive: String = match server.persistentkeepalive {

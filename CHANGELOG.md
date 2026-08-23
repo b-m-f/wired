@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.2] - 2026-08-23
+
+### Fixed
+- Fixed Nix configuration generator to output space-separated `AllowedIPs` arrays instead of comma-separated ones, making the output syntactically valid in Nix.
+
 ## [2.2.1] - 2026-08-23
 
 ### Fixed
