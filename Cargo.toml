@@ -1,16 +1,16 @@
 [package]
 name = "wired"
-version = "2.1.1"
+version = "2.2.0"
 edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-serde = { version = "=1.0.228", features = ["derive"] }
-toml = "=0.8.23"
-ipnet = "=2.12.0"
+serde = { version = "=1.0.229", features = ["derive"] }
+toml = "=1.1.4+spec-1.1.0"
+ipnet = "=2.12.1"
 qrcode = "=0.14.1"
 image = "=0.25.10"
-clap = { version = "=4.6.0", features = ["derive"] }
+clap = { version = "=4.6.6", features = ["derive"] }
 [profile.release]
 opt-level = 3

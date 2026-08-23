@@ -5,3 +5,4 @@ wireguard
 ./full.toml
 *.t.err
 tests/full-nix-encrypted.t/.gnupg/
+.DS_Store

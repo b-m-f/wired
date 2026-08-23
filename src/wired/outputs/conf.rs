@@ -27,6 +27,13 @@ pub fn generate_server(
 
     let mut peers = "".to_string();
     for peer in &clients[..] {
+        let mut final_ips = vec![format!("{}", peer.ip)];
+        for a_ip in &peer.allowedips {
+            if a_ip != &format!("{}/32", peer.ip) && a_ip != &peer.ip.to_string() {
+                final_ips.push(a_ip.clone());
+            }
+        }
+        let allowed_ips_str = final_ips.join(", ");
         peers = format!(
             "{}\n\
 [Peer]\n\
@@ -34,7 +41,7 @@ pub fn generate_server(
 AllowedIPs = {}\n\
 PublicKey = {}\n\
 PresharedKey = {}",
-            peers, peer.name, peer.ip, peer.publickey, network.presharedkey
+            peers, peer.name, allowed_ips_str, peer.publickey, network.presharedkey
         );
         peers = format!("{}\n", peers)
     }
@@ -63,6 +70,13 @@ pub fn generate_client(
     }
     let mut peers = "".to_string();
     for peer in &servers[..] {
+        let mut final_ips = vec![format!("{}", peer.ip)];
+        for a_ip in &peer.allowedips {
+            if a_ip != &format!("{}/32", peer.ip) && a_ip != &peer.ip.to_string() {
+                final_ips.push(a_ip.clone());
+            }
+        }
+        let allowed_ips_str = final_ips.join(", ");
         peers = format!(
             "{}\n\
         [Peer]\n\
@@ -70,7 +84,7 @@ pub fn generate_client(
         Endpoint = {}:{}\n\
         AllowedIPs = {}\n\
         PresharedKey = {}",
-            peers, peer.publickey, peer.endpoint, peer.listenport, peer.ip, network.presharedkey
+            peers, peer.publickey, peer.endpoint, peer.listenport, allowed_ips_str, network.presharedkey
         );
         match &peer.persistentkeepalive {
             Some(ka) => {

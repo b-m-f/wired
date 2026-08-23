@@ -68,10 +68,17 @@ pub fn generate_server(
     for client in clients {
         let publickey = client.publickey.clone();
         let ip = client.ip;
+        let mut final_ips = vec![format!("\"{}\"", ip)];
+        for a_ip in &client.allowedips {
+            if a_ip != &format!("{}/32", ip) && a_ip != &ip.to_string() {
+                final_ips.push(format!("\"{}\"", a_ip));
+            }
+        }
+        let allowed_ips_str = final_ips.join(", ");
         let peer = format!(
             "{{
             PublicKey = \"{publickey}\";
-            AllowedIPs =[\"{ip}\"];
+            AllowedIPs =[{allowed_ips_str}];
             PresharedKeyFile=\"{psk_path}\";
         }}"
         );
@@ -150,6 +157,13 @@ pub fn generate_client(
     for server in servers {
         let publickey = server.publickey.clone();
         let ip = server.ip;
+        let mut final_ips = vec![format!("\"{}\"", ip)];
+        for a_ip in &server.allowedips {
+            if a_ip != &format!("{}/32", ip) && a_ip != &ip.to_string() {
+                final_ips.push(format!("\"{}\"", a_ip));
+            }
+        }
+        let allowed_ips_str = final_ips.join(", ");
         let endpoint = server.endpoint.clone();
         let listenport = server.listenport;
         let persistentkeepalive: String = match server.persistentkeepalive {
@@ -159,7 +173,7 @@ pub fn generate_client(
         let peer = format!(
             "{{
                      PublicKey = \"{publickey}\";
-                     AllowedIPs = [\"{ip}\"];
+                     AllowedIPs = [{allowed_ips_str}];
                      Endpoint = \"{endpoint}:{listenport}\";
                      {persistentkeepalive}
                      PresharedKeyFile=\"{psk_path}\";
