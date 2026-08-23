@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.3] - 2026-08-23
+
+### Fixed
+- Fixed Nix outputs to automatically define systemd-networkd kernel routing rules (`routes`) for all `AllowedIPs` configured across connected peers.
+
 ## [2.2.2] - 2026-08-23
 
 ### Fixed

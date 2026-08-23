@@ -64,6 +64,10 @@ pub fn generate_server(
 
     // create peer section
     let mut peers: Vec<String> = Vec::new();
+    let mut all_routes = vec![format!(
+        "       {{\n          Destination = \"{cidr}\";\n       }}"
+    )];
+    let mut added_routes = vec![cidr.to_string()];
 
     for client in clients {
         let publickey = client.publickey.clone();
@@ -72,6 +76,12 @@ pub fn generate_server(
         for a_ip in &client.allowedips {
             if a_ip != &format!("{}/32", ip) && a_ip != &ip.to_string() {
                 final_ips.push(format!("\"{}\"", a_ip));
+            }
+            if !added_routes.contains(a_ip) && a_ip != &format!("{}/32", ip) && a_ip != &ip.to_string() {
+                all_routes.push(format!(
+                    "       {{\n          Destination = \"{a_ip}\";\n       }}"
+                ));
+                added_routes.push(a_ip.clone());
             }
         }
         let allowed_ips_str = final_ips.join(" ");
@@ -86,6 +96,7 @@ pub fn generate_server(
     }
 
     let peers: String = peers.into_iter().collect();
+    let routes_str = all_routes.join("\n");
 
     return format!(
         "
@@ -117,9 +128,7 @@ pub fn generate_server(
     matchConfig.Name = \"{name}\";
     address = [\"{ip}/32\"];
     routes = [
-       {{
-          Destination = \"{cidr}\";
-       }}
+{routes_str}
     ];
   }};
 }}
@@ -153,6 +162,10 @@ pub fn generate_client(
 
     // generate peer section
     let mut peers: Vec<String> = Vec::new();
+    let mut all_routes = vec![format!(
+        "                   {{\n                     Destination = \"{cidr}\";\n                   }}"
+    )];
+    let mut added_routes = vec![cidr.to_string()];
 
     for server in servers {
         let publickey = server.publickey.clone();
@@ -161,6 +174,12 @@ pub fn generate_client(
         for a_ip in &server.allowedips {
             if a_ip != &format!("{}/32", ip) && a_ip != &ip.to_string() {
                 final_ips.push(format!("\"{}\"", a_ip));
+            }
+            if !added_routes.contains(a_ip) && a_ip != &format!("{}/32", ip) && a_ip != &ip.to_string() {
+                all_routes.push(format!(
+                    "                   {{\n                     Destination = \"{a_ip}\";\n                   }}"
+                ));
+                added_routes.push(a_ip.clone());
             }
         }
         let allowed_ips_str = final_ips.join(" ");
@@ -182,6 +201,7 @@ pub fn generate_client(
         peers.push(peer)
     }
     let peers: String = peers.into_iter().collect();
+    let routes_str = all_routes.join("\n");
 
     return format!(
         "{{
@@ -217,9 +237,7 @@ pub fn generate_client(
                 IPv6AcceptRA = false;
               }};
               routes = [
-                   {{
-                     Destination = \"{cidr}\";
-                   }}
+{routes_str}
               ];
         }};
         }}",

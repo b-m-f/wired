@@ -10,8 +10,10 @@ ip = "10.0.0.1"
 listenport =  20202
 endpoint = "1.1.1.1"
 allowedips = ["1.1.1.1/32", "0.0.0.0/0"]
+output = "nix"
 
 [clients]
 [clients.client]
 ip = "10.0.0.2"
 allowedips = ["2.2.2.2"]
+output = "nix"
